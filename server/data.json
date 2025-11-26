@@ -1,0 +1,232 @@
+{
+  "products": [
+    {
+      "id": "1764182836481b2el3tjcq",
+      "nameEn": "Wireless Mouse",
+      "nameHe": "",
+      "code": "CA9935QH",
+      "price": 248.8,
+      "discount": 0,
+      "discountType": "percent"
+    },
+    {
+      "id": "1764182836481mgi35k0ei",
+      "nameEn": "Bluetooth Speaker",
+      "nameHe": "",
+      "code": "ZAZOSMU0",
+      "price": 31.42,
+      "discount": 0,
+      "discountType": "percent"
+    },
+    {
+      "id": "176418283648143z3uxeo9",
+      "nameEn": "Laptop Stand",
+      "nameHe": "",
+      "code": "H94MZI41",
+      "price": 260.17,
+      "discount": 0,
+      "discountType": "percent"
+    },
+    {
+      "id": "1764182836481ekqllrs2k",
+      "nameEn": "USB-C Charger",
+      "nameHe": "",
+      "code": "VMLXROMI",
+      "price": 286.54,
+      "discount": 0,
+      "discountType": "percent"
+    },
+    {
+      "id": "1764182836481xxaeauwln",
+      "nameEn": "Gaming Keyboard",
+      "nameHe": "",
+      "code": "BYALD0YA",
+      "price": 296.38,
+      "discount": 0,
+      "discountType": "percent"
+    },
+    {
+      "id": "1764182836481wdtl03ruw",
+      "nameEn": "Noise Cancelling Headphones",
+      "nameHe": "",
+      "code": "U46TPK7M",
+      "price": 226.78,
+      "discount": 0,
+      "discountType": "percent"
+    },
+    {
+      "id": "1764182836481kc9uw3h4o",
+      "nameEn": "Smartwatch",
+      "nameHe": "",
+      "code": "F3WLLDC8",
+      "price": 224.95,
+      "discount": 0,
+      "discountType": "percent"
+    },
+    {
+      "id": "1764182836481fqapsjtwd",
+      "nameEn": "LED Desk Lamp",
+      "nameHe": "",
+      "code": "A71T0R7Q",
+      "price": 253.43,
+      "discount": 0,
+      "discountType": "percent"
+    },
+    {
+      "id": "1764182836481tyvngm3wc",
+      "nameEn": "Portable SSD",
+      "nameHe": "",
+      "code": "23PDM79N",
+      "price": 36.93,
+      "discount": 0,
+      "discountType": "percent"
+    },
+    {
+      "id": "1764182836481y7gwj4q7b",
+      "nameEn": "Ergonomic Chair",
+      "nameHe": "",
+      "code": "CS8YF6YR",
+      "price": 215.21,
+      "discount": 0,
+      "discountType": "percent"
+    }
+  ],
+  "clients": [
+    {
+      "id": "1764174398500",
+      "name": "שי שלום",
+      "phone": "0523198889",
+      "email": "shayshay@gmail.com",
+      "status": "מעוניין",
+      "notes": "רוצה לקנות 5 חבילות",
+      "productIds": [
+        "1764021803862"
+      ],
+      "lastContacted": "2025-11-25"
+    },
+    {
+      "id": "1764175239383",
+      "name": "צוריאל קראודר",
+      "phone": "0509639280",
+      "email": "sureal94@yahoo.com",
+      "status": "קונה עשיר רצח",
+      "notes": "בן אדם עשיר ונאה רצח ",
+      "productIds": [
+        "1764022313887"
+      ],
+      "lastContacted": "2025-11-10"
+    },
+    {
+      "id": "1764180687734",
+      "name": "david brown",
+      "phone": "0508764532",
+      "email": "dudewhat@gmail.com",
+      "status": "",
+      "notes": "",
+      "productIds": [
+        "1764177306427o9vsgjf1m"
+      ],
+      "lastContacted": "2025-11-15"
+    },
+    {
+      "id": "17641840876251rleftkbh",
+      "name": "Olivia Brown",
+      "phone": "+1-125-950-7670",
+      "email": "olivia.brown@outlook.com",
+      "status": "Active",
+      "notes": "",
+      "productIds": [],
+      "lastContacted": "2025-11-26"
+    },
+    {
+      "id": "17641840876255112kocq2",
+      "name": "Maria Johnson",
+      "phone": "+1-392-931-5721",
+      "email": "maria.johnson@gmail.com",
+      "status": "Active",
+      "notes": "",
+      "productIds": [],
+      "lastContacted": "2025-11-26"
+    },
+    {
+      "id": "1764184087625b80p1ibqm",
+      "name": "Tom Martin",
+      "phone": "+1-136-879-8983",
+      "email": "tom.martin@gmail.com",
+      "status": "Active",
+      "notes": "",
+      "productIds": [],
+      "lastContacted": "2025-11-26"
+    },
+    {
+      "id": "1764184087625kp86pwesc",
+      "name": "Tom Wilson",
+      "phone": "+1-155-341-5850",
+      "email": "tom.wilson@outlook.com",
+      "status": "Active",
+      "notes": "",
+      "productIds": [],
+      "lastContacted": "2025-11-26"
+    },
+    {
+      "id": "1764184087625n50ty457g",
+      "name": "Nina Wilson",
+      "phone": "+1-236-740-6435",
+      "email": "nina.wilson@yahoo.com",
+      "status": "Prospect",
+      "notes": "",
+      "productIds": [],
+      "lastContacted": "2025-11-26"
+    },
+    {
+      "id": "17641840876251wryktg4y",
+      "name": "Olivia Taylor",
+      "phone": "+1-430-222-5592",
+      "email": "olivia.taylor@gmail.com",
+      "status": "Active",
+      "notes": "",
+      "productIds": [],
+      "lastContacted": "2025-11-26"
+    },
+    {
+      "id": "17641840876250u6lgde4z",
+      "name": "Nina Brown",
+      "phone": "+1-791-919-8632",
+      "email": "nina.brown@gmail.com",
+      "status": "Inactive",
+      "notes": "",
+      "productIds": [],
+      "lastContacted": "2025-11-26"
+    },
+    {
+      "id": "17641840876253dwx0o1pa",
+      "name": "Tom Walker",
+      "phone": "+1-447-106-4473",
+      "email": "tom.walker@yahoo.com",
+      "status": "Inactive",
+      "notes": "",
+      "productIds": [],
+      "lastContacted": "2025-11-26"
+    },
+    {
+      "id": "1764184087625dvfg4ndf0",
+      "name": "Nina Martin",
+      "phone": "+1-772-908-6988",
+      "email": "nina.martin@outlook.com",
+      "status": "Prospect",
+      "notes": "",
+      "productIds": [],
+      "lastContacted": "2025-11-26"
+    },
+    {
+      "id": "17641840876257vnm2vq2b",
+      "name": "Lucas Johnson",
+      "phone": "+1-221-309-7492",
+      "email": "lucas.johnson@outlook.com",
+      "status": "Active",
+      "notes": "",
+      "productIds": [],
+      "lastContacted": "2025-11-26"
+    }
+  ]
+}

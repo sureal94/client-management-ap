@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Test API Endpoint</h1>
+    <button onclick="testHealth()">Test Health Check</button>
+    <button onclick="testCreateProduct()">Test Create Product</button>
+    <div id="result"></div>
+
+    <script>
+        async function testHealth() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing...';
+            try {
+                const response = await fetch('http://localhost:5000/api/health');
+                const data = await response.json();
+                result.innerHTML = '<pre>Health Check: ' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                result.innerHTML = '<pre style="color: red;">Error: ' + error.message + '</pre>';
+            }
+        }
+
+        async function testCreateProduct() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing product creation...';
+            try {
+                const product = {
+                    name: 'Test Product',
+                    code: 'TEST001',
+                    price: 100,
+                    discount: 10,
+                    discountType: 'percent'
+                };
+                
+                console.log('Sending:', product);
+                
+                const response = await fetch('http://localhost:5000/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(product)
+                });
+
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.innerHTML = '<pre style="color: green;">Success: ' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    result.innerHTML = '<pre style="color: red;">Error (' + response.status + '): ' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+            } catch (error) {
+                result.innerHTML = '<pre style="color: red;">Network Error: ' + error.message + '</pre>';
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+

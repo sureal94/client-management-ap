@@ -1,0 +1,285 @@
+import { useState, useEffect } from 'react';
+import { useI18n } from '../i18n/I18nContext';
+import { Plus, Edit, Phone, Mail, Search, Download } from 'lucide-react';
+import { fetchClients, createClient, updateClient, deleteClient, fetchProducts } from '../services/api';
+import ClientModal from '../components/ClientModal';
+import Fuse from 'fuse.js';
+import * as XLSX from 'xlsx';
+
+const ClientsPage = () => {
+  const { t } = useI18n();
+  const [clients, setClients] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [clientsData, productsData] = await Promise.all([
+        fetchClients(),
+        fetchProducts(),
+      ]);
+      setClients(clientsData);
+      setProducts(productsData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fuse = new Fuse(clients, {
+    keys: ['name', 'email', 'phone'],
+    threshold: 0.3,
+  });
+
+  const filteredClients = searchTerm
+    ? fuse.search(searchTerm).map(item => item.item)
+    : clients;
+
+  const handleAdd = () => {
+    setEditingClient(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (client) => {
+    setEditingClient(client);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (clientData) => {
+    try {
+      if (editingClient) {
+        const updated = await updateClient(editingClient.id, clientData);
+        setClients(clients.map(c => c.id === editingClient.id ? updated : c));
+      } else {
+        const newClient = await createClient(clientData);
+        setClients([...clients, newClient]);
+      }
+      setIsModalOpen(false);
+      setEditingClient(null);
+    } catch (error) {
+      console.error('Error saving client:', error);
+      alert('Failed to save client');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this client?')) {
+      try {
+        await deleteClient(id);
+        setClients(clients.filter(c => c.id !== id));
+      } catch (error) {
+        console.error('Error deleting client:', error);
+        alert('Failed to delete client');
+      }
+    }
+  };
+
+  const handleCall = (phone) => {
+    window.location.href = `tel:${phone}`;
+  };
+
+  const handleEmail = (email) => {
+    window.location.href = `mailto:${email}`;
+  };
+
+  const handleExport = (format) => {
+    const data = filteredClients.map(c => ({
+      [t('clientName')]: c.name,
+      [t('phone')]: c.phone,
+      [t('email')]: c.email,
+      [t('status')]: c.status,
+      [t('lastContacted')]: c.lastContacted || '',
+      [t('notes')]: c.notes || '',
+      [t('attachedProducts')]: c.productIds?.join(', ') || '',
+    }));
+
+    if (format === 'csv') {
+      const csv = [
+        Object.keys(data[0] || {}).join(','),
+        ...data.map(row => Object.values(row).join(','))
+      ].join('\n');
+      // Add UTF-8 BOM for Hebrew/Unicode support in Excel
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clients.${format}`;
+      a.click();
+    } else {
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Clients');
+      XLSX.writeFile(wb, `clients.${format}`, { bookType: 'xlsx', type: 'binary' });
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-12">Loading...</div>;
+  }
+
+  return (
+    <div className="bg-white shadow rounded-lg">
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h2 className="text-2xl font-bold text-black">{t('clients')}</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={handleAdd}
+              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              {t('addClient')}
+            </button>
+            <div className="relative group">
+              <button className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 flex items-center gap-2">
+                <Download className="w-5 h-5" />
+                {t('export')}
+              </button>
+              <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <button
+                  onClick={() => handleExport('csv')}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  {t('exportAsCSV')}
+                </button>
+                <button
+                  onClick={() => handleExport('xlsx')}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  {t('exportAsXLSX')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 rtl:right-3 rtl:left-auto" />
+            <input
+              type="text"
+              placeholder={t('searchClients')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent rtl:pr-10 rtl:pl-4"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('clientName')}
+              </th>
+              <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('phone')}
+              </th>
+              <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('email')}
+              </th>
+              <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('status')}
+              </th>
+              <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('lastContacted')}
+              </th>
+              <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t('actions')}
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredClients.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                  {t('noClients')}
+                </td>
+              </tr>
+            ) : (
+              filteredClients.map((client) => (
+                <tr key={client.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {client.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {client.phone}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {client.email}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {client.status || '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {client.lastContacted
+                      ? new Date(client.lastContacted).toLocaleDateString()
+                      : '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex gap-2 rtl:flex-row-reverse">
+                      {client.phone && (
+                        <button
+                          onClick={() => handleCall(client.phone)}
+                          className="text-primary hover:text-orange-600"
+                          title={t('call')}
+                        >
+                          <Phone className="w-5 h-5" />
+                        </button>
+                      )}
+                      {client.email && (
+                        <button
+                          onClick={() => handleEmail(client.email)}
+                          className="text-primary hover:text-orange-600"
+                          title={t('email')}
+                        >
+                          <Mail className="w-5 h-5" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleEdit(client)}
+                        className="text-primary hover:text-orange-600"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {isModalOpen && (
+        <ClientModal
+          client={editingClient}
+          products={products}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingClient(null);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+export default ClientsPage;
+
+
+
