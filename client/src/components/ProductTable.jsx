@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useI18n } from '../i18n/I18nContext';
-import { Edit, Plus, Download, Search } from 'lucide-react';
+import { Edit, Plus, Download, Search, ChevronRight } from 'lucide-react';
 import { calculateFinalPrice } from '../utils/calculations';
 import ProductModal from './ProductModal';
 import Fuse from 'fuse.js';
@@ -110,34 +110,42 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
     }
   };
 
+  const getDisplayName = (product) => {
+    return language === 'he' 
+      ? (product.nameHe || product.nameEn || product.name) 
+      : (product.nameEn || product.name);
+  };
+
   return (
-    <div className="bg-white shadow rounded-lg">
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-2xl font-bold text-black">{t('products')}</h2>
-          <div className="flex flex-wrap gap-2">
+    <div className="bg-white shadow rounded-lg overflow-hidden">
+      {/* Header */}
+      <div className="p-4 sm:p-6 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-black">{t('products')}</h2>
+          <div className="flex gap-2 w-full sm:w-auto">
             <button
               onClick={handleAdd}
-              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center gap-2"
+              className="flex-1 sm:flex-none bg-primary text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               <Plus className="w-5 h-5" />
-              {t('addProduct')}
+              <span className="hidden xs:inline">{t('addProduct')}</span>
+              <span className="xs:hidden">{t('add')}</span>
             </button>
             <div className="relative group">
-              <button className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 flex items-center gap-2">
+              <button className="bg-black text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-800 flex items-center gap-2 text-sm sm:text-base">
                 <Download className="w-5 h-5" />
-                {t('export')}
+                <span className="hidden sm:inline">{t('export')}</span>
               </button>
-              <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
                 <button
                   onClick={() => handleExport('csv')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
                 >
                   {t('exportAsCSV')}
                 </button>
                 <button
                   onClick={() => handleExport('xlsx')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
                 >
                   {t('exportAsXLSX')}
                 </button>
@@ -146,21 +154,73 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
+        {/* Search */}
+        <div className="mt-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 rtl:right-3 rtl:left-auto" />
             <input
               type="text"
               placeholder={t('searchProducts')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent rtl:pr-10 rtl:pl-4"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent rtl:pr-10 rtl:pl-4 text-base"
             />
           </div>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile Card View */}
+      <div className="md:hidden">
+        {filteredProducts.length === 0 ? (
+          <div className="p-6 text-center text-gray-500">
+            {t('noProducts')}
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {filteredProducts.map((product) => {
+              const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType);
+              const displayName = getDisplayName(product);
+              return (
+                <div
+                  key={product.id}
+                  className="p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer"
+                  onClick={() => handleEdit(product)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 truncate">
+                        {displayName}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {t('productCode')}: {product.code}
+                      </p>
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className="text-sm text-gray-500">
+                          {t('price')}: ₪{product.price.toFixed(2)}
+                        </span>
+                        {product.discount > 0 && (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                            -{product.discount}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-2">
+                      <span className="text-lg font-bold text-primary">
+                        ₪{finalPrice.toFixed(2)}
+                      </span>
+                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -218,9 +278,7 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
             ) : (
               filteredProducts.map((product) => {
                 const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType);
-                const displayName = language === 'he' 
-                  ? (product.nameHe || product.nameEn || product.name) 
-                  : (product.nameEn || product.name);
+                const displayName = getDisplayName(product);
                 return (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -241,7 +299,7 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => handleEdit(product)}
-                        className="text-primary hover:text-orange-600"
+                        className="text-primary hover:text-orange-600 p-2"
                       >
                         <Edit className="w-5 h-5" />
                       </button>
@@ -271,4 +329,3 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
 };
 
 export default ProductTable;
-

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nContext';
-import { Plus, Phone, Mail, Search, Download, MessageCircle } from 'lucide-react';
+import { Plus, Phone, Mail, Search, Download, ChevronRight } from 'lucide-react';
 import { fetchClients, createClient, updateClient, deleteClient, fetchProducts } from '../services/api';
 import ClientModal from '../components/ClientModal';
 import Fuse from 'fuse.js';
@@ -153,33 +153,35 @@ const ClientsPage = () => {
   }
 
   return (
-    <div className="bg-white shadow rounded-lg">
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-2xl font-bold text-black">{t('clients')}</h2>
-          <div className="flex gap-2">
+    <div className="bg-white shadow rounded-lg overflow-hidden">
+      {/* Header */}
+      <div className="p-4 sm:p-6 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-black">{t('clients')}</h2>
+          <div className="flex gap-2 w-full sm:w-auto">
             <button
               onClick={handleAdd}
-              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center gap-2"
+              className="flex-1 sm:flex-none bg-primary text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               <Plus className="w-5 h-5" />
-              {t('addClient')}
+              <span className="hidden xs:inline">{t('addClient')}</span>
+              <span className="xs:hidden">{t('add')}</span>
             </button>
             <div className="relative group">
-              <button className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 flex items-center gap-2">
+              <button className="bg-black text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-800 flex items-center gap-2 text-sm sm:text-base">
                 <Download className="w-5 h-5" />
-                {t('export')}
+                <span className="hidden sm:inline">{t('export')}</span>
               </button>
-              <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
                 <button
                   onClick={() => handleExport('csv')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
                 >
                   {t('exportAsCSV')}
                 </button>
                 <button
                   onClick={() => handleExport('xlsx')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-sm"
                 >
                   {t('exportAsXLSX')}
                 </button>
@@ -188,6 +190,7 @@ const ClientsPage = () => {
           </div>
         </div>
 
+        {/* Search */}
         <div className="mt-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 rtl:right-3 rtl:left-auto" />
@@ -196,13 +199,89 @@ const ClientsPage = () => {
               placeholder={t('searchClients')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent rtl:pr-10 rtl:pl-4"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent rtl:pr-10 rtl:pl-4 text-base"
             />
           </div>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile Card View */}
+      <div className="md:hidden">
+        {filteredClients.length === 0 ? (
+          <div className="p-6 text-center text-gray-500">
+            {t('noClients')}
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {filteredClients.map((client) => (
+              <div
+                key={client.id}
+                className="p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer"
+                onClick={() => handleEdit(client)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">
+                      {client.name}
+                    </h3>
+                    {client.phone && (
+                      <p className="text-sm text-gray-500 mt-1">{client.phone}</p>
+                    )}
+                    {client.email && (
+                      <p className="text-sm text-gray-400 truncate">{client.email}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 ml-2">
+                    {/* Action Buttons */}
+                    <div className="flex gap-1">
+                      {client.phone && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCall(client.phone);
+                          }}
+                          className="p-2 text-primary hover:bg-orange-50 rounded-full transition-colors"
+                          title={t('call')}
+                        >
+                          <Phone className="w-5 h-5" />
+                        </button>
+                      )}
+                      {client.phone && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleWhatsApp(client.phone);
+                          }}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                          title={t('whatsapp') || 'WhatsApp'}
+                        >
+                          <WhatsAppIcon className="w-5 h-5" />
+                        </button>
+                      )}
+                      {client.email && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEmail(client.email);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                          title={t('email')}
+                        >
+                          <Mail className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -265,7 +344,7 @@ const ClientsPage = () => {
                             e.stopPropagation();
                             handleCall(client.phone);
                           }}
-                          className="text-primary hover:text-orange-600"
+                          className="text-primary hover:text-orange-600 p-1"
                           title={t('call')}
                         >
                           <Phone className="w-5 h-5" />
@@ -277,7 +356,7 @@ const ClientsPage = () => {
                             e.stopPropagation();
                             handleWhatsApp(client.phone);
                           }}
-                          className="text-green-600 hover:text-green-700"
+                          className="text-green-600 hover:text-green-700 p-1"
                           title={t('whatsapp') || 'WhatsApp'}
                         >
                           <WhatsAppIcon className="w-5 h-5" />
@@ -289,7 +368,7 @@ const ClientsPage = () => {
                             e.stopPropagation();
                             handleEmail(client.email);
                           }}
-                          className="text-primary hover:text-orange-600"
+                          className="text-primary hover:text-orange-600 p-1"
                           title={t('email')}
                         >
                           <Mail className="w-5 h-5" />
@@ -322,6 +401,3 @@ const ClientsPage = () => {
 };
 
 export default ClientsPage;
-
-
-
