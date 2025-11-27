@@ -10,7 +10,6 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
   const { t, language } = useI18n();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [filterType, setFilterType] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
@@ -28,11 +27,6 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
     if (searchTerm) {
       const searchResults = fuse.search(searchTerm);
       result = searchResults.map(item => item.item);
-    }
-
-    // Apply filter
-    if (filterType !== 'all') {
-      result = result.filter(p => p.discountType === filterType);
     }
 
     // Apply sorting
@@ -56,7 +50,7 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
     }
 
     return result;
-  }, [products, searchTerm, filterType, sortConfig, fuse, language]);
+  }, [products, searchTerm, sortConfig, fuse, language]);
 
   const handleSort = (key) => {
     setSortConfig(prev => ({
@@ -92,7 +86,6 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
       [t('productCode')]: p.code,
       [t('price')]: p.price,
       [t('discount')]: p.discount,
-      [t('discountType')]: p.discountType,
       [t('finalPrice')]: calculateFinalPrice(p.price, p.discount, p.discountType).toFixed(2),
     }));
 
@@ -164,15 +157,6 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent rtl:pr-10 rtl:pl-4"
             />
           </div>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
-          >
-            <option value="all">{t('filter')} - {t('discountType')}</option>
-            <option value="percent">{t('percent')}</option>
-            <option value="fixed">{t('fixed')}</option>
-          </select>
         </div>
       </div>
 
@@ -182,7 +166,7 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
             <tr>
               <th
                 onClick={() => handleSort('name')}
-                className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-center text-sm font-bold text-black cursor-pointer hover:bg-gray-100"
               >
                 {t('productName')}
                 {sortConfig.key === 'name' && (
@@ -191,7 +175,7 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
               </th>
               <th
                 onClick={() => handleSort('code')}
-                className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-center text-sm font-bold text-black cursor-pointer hover:bg-gray-100"
               >
                 {t('productCode')}
                 {sortConfig.key === 'code' && (
@@ -200,29 +184,26 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
               </th>
               <th
                 onClick={() => handleSort('price')}
-                className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-center text-sm font-bold text-black cursor-pointer hover:bg-gray-100"
               >
                 {t('price')}
                 {sortConfig.key === 'price' && (
                   <span>{sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}</span>
                 )}
               </th>
-              <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-sm font-bold text-black">
                 {t('discount')}
-              </th>
-              <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('discountType')}
               </th>
               <th
                 onClick={() => handleSort('finalPrice')}
-                className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-center text-sm font-bold text-black cursor-pointer hover:bg-gray-100"
               >
                 {t('finalPrice')}
                 {sortConfig.key === 'finalPrice' && (
                   <span>{sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}</span>
                 )}
               </th>
-              <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-sm font-bold text-black">
                 {t('actions')}
               </th>
             </tr>
@@ -230,7 +211,7 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                   {t('noProducts')}
                 </td>
               </tr>
@@ -249,16 +230,13 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
                       {product.code}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ${product.price.toFixed(2)}
+                      ₪{product.price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {product.discount || 0}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {t(product.discountType)}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
-                      ${finalPrice.toFixed(2)}
+                      ₪{finalPrice.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button

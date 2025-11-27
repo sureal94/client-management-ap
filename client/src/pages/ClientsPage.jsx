@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nContext';
-import { Plus, Edit, Phone, Mail, Search, Download } from 'lucide-react';
+import { Plus, Phone, Mail, Search, Download } from 'lucide-react';
 import { fetchClients, createClient, updateClient, deleteClient, fetchProducts } from '../services/api';
 import ClientModal from '../components/ClientModal';
 import Fuse from 'fuse.js';
@@ -210,7 +210,11 @@ const ClientsPage = () => {
               </tr>
             ) : (
               filteredClients.map((client) => (
-                <tr key={client.id} className="hover:bg-gray-50">
+                <tr 
+                  key={client.id} 
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handleEdit(client)}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {client.name}
                   </td>
@@ -232,7 +236,10 @@ const ClientsPage = () => {
                     <div className="flex gap-2 rtl:flex-row-reverse">
                       {client.phone && (
                         <button
-                          onClick={() => handleCall(client.phone)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCall(client.phone);
+                          }}
                           className="text-primary hover:text-orange-600"
                           title={t('call')}
                         >
@@ -241,19 +248,16 @@ const ClientsPage = () => {
                       )}
                       {client.email && (
                         <button
-                          onClick={() => handleEmail(client.email)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEmail(client.email);
+                          }}
                           className="text-primary hover:text-orange-600"
                           title={t('email')}
                         >
                           <Mail className="w-5 h-5" />
                         </button>
                       )}
-                      <button
-                        onClick={() => handleEdit(client)}
-                        className="text-primary hover:text-orange-600"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
                     </div>
                   </td>
                 </tr>

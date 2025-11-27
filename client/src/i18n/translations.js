@@ -38,6 +38,10 @@ export const translations = {
     call: "Call",
     email: "Email",
     attachedProducts: "Attached Products",
+    addProducts: "Add Products",
+    selectProducts: "Select Products",
+    done: "Done",
+    selected: "selected",
     
     // Import
     importFromCSV: "Import from CSV",
@@ -86,7 +90,7 @@ export const translations = {
     productName: "שם מוצר",
     productNameEn: "שם מוצר (אנגלית)",
     productNameHe: "שם מוצר (עברית)",
-    productCode: "קוד מוצר",
+    productCode: "מק\"ט",
     price: "מחיר",
     discount: "הנחה",
     discountType: "סוג הנחה",
@@ -114,6 +118,10 @@ export const translations = {
     call: "התקשר",
     email: "שלח אימייל",
     attachedProducts: "מוצרים מצורפים",
+    addProducts: "הוסף מוצרים",
+    selectProducts: "בחר מוצרים",
+    done: "סיום",
+    selected: "נבחרו",
     
     // Import
     importFromCSV: "ייבוא מ-CSV",

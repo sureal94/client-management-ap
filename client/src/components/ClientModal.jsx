@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nContext';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, Plus, Check } from 'lucide-react';
 import { format } from 'date-fns';
 
 const ClientModal = ({ client, products, onSave, onClose, onDelete }) => {
@@ -14,6 +14,7 @@ const ClientModal = ({ client, products, onSave, onClose, onDelete }) => {
     productIds: [],
     lastContacted: format(new Date(), 'yyyy-MM-dd'),
   });
+  const [isProductPickerOpen, setIsProductPickerOpen] = useState(false);
 
   useEffect(() => {
     if (client) {
@@ -51,6 +52,21 @@ const ClientModal = ({ client, products, onSave, onClose, onDelete }) => {
         : [...formData.productIds, productId],
     });
   };
+
+  const removeProduct = (productId) => {
+    setFormData({
+      ...formData,
+      productIds: formData.productIds.filter(id => id !== productId),
+    });
+  };
+
+  const getProductDisplayName = (product) => {
+    return language === 'he' 
+      ? (product.nameHe || product.nameEn || product.name) 
+      : (product.nameEn || product.name);
+  };
+
+  const selectedProducts = products.filter(p => formData.productIds.includes(p.id));
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -136,37 +152,42 @@ const ClientModal = ({ client, products, onSave, onClose, onDelete }) => {
             </div>
           </div>
 
+          {/* Products Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('attachedProducts')}
             </label>
-            <div className="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
-              {products.length === 0 ? (
-                <p className="text-gray-500 text-sm">No products available</p>
-              ) : (
-                <div className="space-y-2">
-                  {products.map((product) => {
-                    const displayName = language === 'he' 
-                      ? (product.nameHe || product.nameEn || product.name) 
-                      : (product.nameEn || product.name);
-                    return (
-                      <label
-                        key={product.id}
-                        className="flex items-center space-x-2 rtl:space-x-reverse cursor-pointer hover:bg-gray-50 p-2 rounded"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.productIds.includes(product.id)}
-                          onChange={() => handleProductToggle(product.id)}
-                          className="rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                        <span className="text-sm">{displayName} ({product.code})</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            
+            {/* Selected Products as Bubbles/Chips */}
+            {selectedProducts.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {selectedProducts.map((product) => (
+                  <span
+                    key={product.id}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-sm font-medium"
+                  >
+                    {getProductDisplayName(product)}
+                    <button
+                      type="button"
+                      onClick={() => removeProduct(product.id)}
+                      className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Add Products Button */}
+            <button
+              type="button"
+              onClick={() => setIsProductPickerOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary hover:text-primary transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              {t('addProducts') || 'Add Products'}
+            </button>
           </div>
 
           <div>
@@ -218,11 +239,68 @@ const ClientModal = ({ client, products, onSave, onClose, onDelete }) => {
           )}
         </form>
       </div>
+
+      {/* Product Picker Modal */}
+      {isProductPickerOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[80vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <h3 className="text-lg font-bold text-black">
+                {t('selectProducts') || 'Select Products'}
+              </h3>
+              <button
+                onClick={() => setIsProductPickerOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4">
+              {products.length === 0 ? (
+                <p className="text-gray-500 text-sm text-center py-8">
+                  {t('noProducts') || 'No products available'}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {products.map((product) => {
+                    const isSelected = formData.productIds.includes(product.id);
+                    return (
+                      <button
+                        key={product.id}
+                        type="button"
+                        onClick={() => handleProductToggle(product.id)}
+                        className={`w-full flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
+                          isSelected
+                            ? 'border-primary bg-primary/5 text-primary'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        <span className="font-medium">{getProductDisplayName(product)}</span>
+                        {isSelected && (
+                          <Check className="w-5 h-5 text-primary" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => setIsProductPickerOpen(false)}
+                className="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-orange-600 font-medium"
+              >
+                {t('done') || 'Done'} ({formData.productIds.length} {t('selected') || 'selected'})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default ClientModal;
-
-
-

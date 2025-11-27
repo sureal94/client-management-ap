@@ -133,21 +133,6 @@ const ProductModal = ({ product, onSave, onClose, onDelete }) => {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('discountType')}
-            </label>
-            <select
-              name="discountType"
-              value={formData.discountType}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            >
-              <option value="percent">{t('percent')}</option>
-              <option value="fixed">{t('fixed')}</option>
-            </select>
-          </div>
-
           <div className="flex gap-4 pt-4 rtl:flex-row-reverse">
             <button
               type="submit"
