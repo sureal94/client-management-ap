@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import { Upload, FileText, File, CheckCircle, XCircle, FileSpreadsheet, Package, Users } from 'lucide-react';
-import { uploadCSV, uploadPDF, uploadXLSX, bulkImportProducts, bulkImportClients } from '../services/api';
+import { uploadCSV, uploadPDF, uploadXLSX, bulkImportProducts, bulkImportClients, fetchProducts, fetchClients } from '../services/api';
 import ImportPreview from '../components/ImportPreview';
 
 const ImportPage = () => {
@@ -14,6 +14,25 @@ const ImportPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [imported, setImported] = useState(false);
+  const [existingProducts, setExistingProducts] = useState([]);
+  const [existingClients, setExistingClients] = useState([]);
+
+  // Fetch existing data on mount
+  useEffect(() => {
+    const loadExistingData = async () => {
+      try {
+        const [products, clients] = await Promise.all([
+          fetchProducts(),
+          fetchClients()
+        ]);
+        setExistingProducts(products);
+        setExistingClients(clients);
+      } catch (err) {
+        console.error('Failed to load existing data:', err);
+      }
+    };
+    loadExistingData();
+  }, []);
 
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files?.[0];
@@ -78,15 +97,17 @@ const ImportPage = () => {
     }
   };
 
-  const handleImport = async () => {
-    if (!previewData || !mapping) return;
+  const handleImport = async (filteredData) => {
+    // Use filtered data if provided, otherwise use all preview data
+    const dataToImport = filteredData || previewData;
+    if (!dataToImport || !mapping) return;
 
     setLoading(true);
     setError(null);
 
     try {
       if (importType === 'products') {
-        const products = previewData.map(row => ({
+        const products = dataToImport.map(row => ({
           nameEn: row[mapping.name] || row[mapping.nameEn] || row.name || row.nameEn || '',
           nameHe: row[mapping.nameHe] || row.nameHe || '',
           code: row[mapping.code] || row.code || '',
@@ -105,11 +126,11 @@ const ImportPage = () => {
           window.location.href = '/products';
         }, 2000);
       } else {
-        const clients = previewData.map(row => ({
+        const clients = dataToImport.map(row => ({
           name: row[mapping.name] || row.name || '',
+          pc: row[mapping.pc] || row.pc || '',
           phone: row[mapping.phone] || row.phone || '',
           email: row[mapping.email] || row.email || '',
-          status: row[mapping.status] || row.status || '',
           notes: row[mapping.notes] || row.notes || '',
           lastContacted: row[mapping.lastContacted] || row.lastContacted || new Date().toISOString().split('T')[0],
         }));
@@ -277,6 +298,8 @@ const ImportPage = () => {
           onCancel={handleCancel}
           loading={loading}
           importType={importType}
+          existingProducts={existingProducts}
+          existingClients={existingClients}
         />
       )}
     </div>

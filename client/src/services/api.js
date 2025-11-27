@@ -116,3 +116,44 @@ export const bulkImportClients = (clients) => {
   }).then(handleResponse);
 };
 
+// Document API functions
+export const fetchAllDocuments = () => {
+  return fetch(`${API_BASE_URL}/documents`).then(handleResponse);
+};
+
+export const fetchClientDocuments = (clientId) => {
+  return fetch(`${API_BASE_URL}/documents/client/${clientId}`).then(handleResponse);
+};
+
+export const fetchPersonalDocuments = () => {
+  return fetch(`${API_BASE_URL}/documents/personal`).then(handleResponse);
+};
+
+export const uploadClientDocument = (clientId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return fetch(`${API_BASE_URL}/documents/client/${clientId}`, {
+    method: 'POST',
+    body: formData,
+  }).then(handleResponse);
+};
+
+export const uploadPersonalDocument = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return fetch(`${API_BASE_URL}/documents/personal`, {
+    method: 'POST',
+    body: formData,
+  }).then(handleResponse);
+};
+
+export const deleteDocument = (id) => {
+  return fetch(`${API_BASE_URL}/documents/${id}`, {
+    method: 'DELETE',
+  }).then(handleResponse);
+};
+
+export const getDocumentDownloadUrl = (id) => {
+  return `${API_BASE_URL}/documents/download/${id}`;
+};
+

@@ -34,10 +34,11 @@ clientsRouter.post('/', async (req, res) => {
     const newClient = {
       id: Date.now().toString(),
       name: req.body.name || '',
+      pc: req.body.pc || '',
       phone: req.body.phone || '',
       email: req.body.email || '',
-      status: req.body.status || '',
-      notes: req.body.notes || '',
+      comments: req.body.comments || [],
+      reminders: req.body.reminders || [],
       productIds: req.body.productIds || [],
       lastContacted: req.body.lastContacted || new Date().toISOString(),
     };
@@ -89,10 +90,11 @@ clientsRouter.post('/bulk', async (req, res) => {
     const imported = newClients.map(c => ({
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       name: c.name || '',
+      pc: c.pc || '',
       phone: c.phone || '',
       email: c.email || '',
-      status: c.status || '',
-      notes: c.notes || '',
+      comments: c.comments || [],
+      reminders: c.reminders || [],
       productIds: c.productIds || [],
       lastContacted: c.lastContacted || new Date().toISOString().split('T')[0],
     }));

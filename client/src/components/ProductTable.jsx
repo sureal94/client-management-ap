@@ -257,6 +257,7 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
       {isModalOpen && (
         <ProductModal
           product={editingProduct}
+          products={products}
           onSave={handleSave}
           onDelete={onDelete}
           onClose={() => {

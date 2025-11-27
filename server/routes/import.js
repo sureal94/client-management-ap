@@ -73,8 +73,8 @@ importRouter.post('/csv', upload.single('file'), async (req, res) => {
             mapping.phone = col;
           } else if (lowerCol.includes('email') || lowerCol.includes('אימייל') || lowerCol.includes('מייל') || lowerCol.includes('דואר')) {
             mapping.email = col;
-          } else if (lowerCol.includes('status') || lowerCol.includes('סטטוס') || lowerCol.includes('מצב')) {
-            mapping.status = col;
+          } else if (lowerCol.includes('pc') || lowerCol.includes('ח"פ') || lowerCol.includes('חפ') || lowerCol.includes('company')) {
+            mapping.pc = col;
           } else if (lowerCol.includes('note') || lowerCol.includes('הערה') || lowerCol.includes('הערות')) {
             mapping.notes = col;
           } else if (lowerCol.includes('contact') || lowerCol.includes('date') || lowerCol.includes('תאריך') || lowerCol.includes('קשר')) {
@@ -173,8 +173,8 @@ importRouter.post('/pdf', upload.single('file'), async (req, res) => {
         mapping.phone = col;
       } else if (lowerCol.includes('email') || lowerCol.includes('אימייל') || lowerCol.includes('מייל') || lowerCol.includes('דואר')) {
         mapping.email = col;
-      } else if (lowerCol.includes('status') || lowerCol.includes('סטטוס') || lowerCol.includes('מצב')) {
-        mapping.status = col;
+      } else if (lowerCol.includes('pc') || lowerCol.includes('ח"פ') || lowerCol.includes('חפ') || lowerCol.includes('company')) {
+        mapping.pc = col;
       } else if (lowerCol.includes('note') || lowerCol.includes('הערה') || lowerCol.includes('הערות')) {
         mapping.notes = col;
       } else if (lowerCol.includes('contact') || lowerCol.includes('date') || lowerCol.includes('תאריך') || lowerCol.includes('קשר')) {
@@ -285,8 +285,8 @@ importRouter.post('/xlsx', upload.single('file'), async (req, res) => {
         mapping.phone = col;
       } else if (lowerCol.includes('email') || lowerCol.includes('אימייל') || lowerCol.includes('מייל') || lowerCol.includes('דואר')) {
         mapping.email = col;
-      } else if (lowerCol.includes('status') || lowerCol.includes('סטטוס') || lowerCol.includes('מצב')) {
-        mapping.status = col;
+      } else if (lowerCol.includes('pc') || lowerCol.includes('ח"פ') || lowerCol.includes('חפ') || lowerCol.includes('company')) {
+        mapping.pc = col;
       } else if (lowerCol.includes('note') || lowerCol.includes('הערה') || lowerCol.includes('הערות')) {
         mapping.notes = col;
       } else if (lowerCol.includes('contact') || lowerCol.includes('date') || lowerCol.includes('תאריך') || lowerCol.includes('קשר')) {

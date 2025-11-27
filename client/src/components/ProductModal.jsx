@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useI18n } from '../i18n/I18nContext';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, AlertCircle } from 'lucide-react';
 
-const ProductModal = ({ product, onSave, onClose, onDelete }) => {
+const ProductModal = ({ product, products = [], onSave, onClose, onDelete }) => {
   const { t } = useI18n();
   const [formData, setFormData] = useState({
     nameEn: '',
@@ -26,8 +26,59 @@ const ProductModal = ({ product, onSave, onClose, onDelete }) => {
     }
   }, [product]);
 
+  // Check if at least one name is provided
+  const hasAtLeastOneName = formData.nameEn.trim() || formData.nameHe.trim();
+  const nameRequiredError = !hasAtLeastOneName ? (t('atLeastOneNameRequired') || 'Please fill out at least one product name.') : null;
+
+  // Check for duplicates (case-insensitive, trimmed)
+  const duplicateErrors = useMemo(() => {
+    const errors = {};
+    const currentId = product?.id;
+    
+    const nameEnTrimmed = formData.nameEn.trim().toLowerCase();
+    const nameHeTrimmed = formData.nameHe.trim().toLowerCase();
+    const codeTrimmed = formData.code.trim().toLowerCase();
+
+    if (nameEnTrimmed) {
+      const duplicateName = products.find(p => 
+        p.id !== currentId && 
+        ((p.nameEn || p.name || '').trim().toLowerCase() === nameEnTrimmed)
+      );
+      if (duplicateName) {
+        errors.nameEn = t('productNameExists') || 'Product name already exists';
+      }
+    }
+
+    if (nameHeTrimmed) {
+      const duplicateNameHe = products.find(p => 
+        p.id !== currentId && 
+        (p.nameHe || '').trim().toLowerCase() === nameHeTrimmed
+      );
+      if (duplicateNameHe) {
+        errors.nameHe = t('productNameExists') || 'Product name already exists';
+      }
+    }
+
+    if (codeTrimmed) {
+      const duplicateCode = products.find(p => 
+        p.id !== currentId && 
+        (p.code || '').trim().toLowerCase() === codeTrimmed
+      );
+      if (duplicateCode) {
+        errors.code = t('productCodeExists') || 'Product code already exists';
+      }
+    }
+
+    return errors;
+  }, [formData.nameEn, formData.nameHe, formData.code, products, product, t]);
+
+  const hasErrors = Object.keys(duplicateErrors).length > 0 || nameRequiredError;
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (hasErrors) {
+      return;
+    }
     onSave({
       ...formData,
       price: parseFloat(formData.price),
@@ -58,6 +109,16 @@ const ProductModal = ({ product, onSave, onClose, onDelete }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Name Required Error - shown when both names are empty */}
+          {nameRequiredError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {nameRequiredError}
+              </p>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('productNameEn')}
@@ -67,10 +128,17 @@ const ProductModal = ({ product, onSave, onClose, onDelete }) => {
               name="nameEn"
               value={formData.nameEn}
               onChange={handleChange}
-              required
               dir="ltr"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
+                duplicateErrors.nameEn || (nameRequiredError && !formData.nameHe.trim()) ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              }`}
             />
+            {duplicateErrors.nameEn && (
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {duplicateErrors.nameEn}
+              </p>
+            )}
           </div>
 
           <div>
@@ -82,10 +150,17 @@ const ProductModal = ({ product, onSave, onClose, onDelete }) => {
               name="nameHe"
               value={formData.nameHe}
               onChange={handleChange}
-              required
               dir="rtl"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
+                duplicateErrors.nameHe || (nameRequiredError && !formData.nameEn.trim()) ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              }`}
             />
+            {duplicateErrors.nameHe && (
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {duplicateErrors.nameHe}
+              </p>
+            )}
           </div>
 
           <div>
@@ -98,8 +173,16 @@ const ProductModal = ({ product, onSave, onClose, onDelete }) => {
               value={formData.code}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
+                duplicateErrors.code ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              }`}
             />
+            {duplicateErrors.code && (
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {duplicateErrors.code}
+              </p>
+            )}
           </div>
 
           <div>
@@ -136,7 +219,12 @@ const ProductModal = ({ product, onSave, onClose, onDelete }) => {
           <div className="flex gap-4 pt-4 rtl:flex-row-reverse">
             <button
               type="submit"
-              className="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-orange-600 font-medium"
+              disabled={hasErrors}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium ${
+                hasErrors
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-primary text-white hover:bg-orange-600'
+              }`}
             >
               {t('save')}
             </button>
@@ -174,6 +262,3 @@ const ProductModal = ({ product, onSave, onClose, onDelete }) => {
 };
 
 export default ProductModal;
-
-
-

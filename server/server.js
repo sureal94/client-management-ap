@@ -7,6 +7,7 @@ import fs from 'fs/promises';
 import { productsRouter } from './routes/products.js';
 import { clientsRouter } from './routes/clients.js';
 import { importRouter } from './routes/import.js';
+import { documentsRouter } from './routes/documents.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,6 +66,12 @@ if (process.env.NODE_ENV === 'production') {
 app.use('/api/products', productsRouter);
 app.use('/api/clients', clientsRouter);
 app.use('/api/import', importRouter);
+app.use('/api/documents', documentsRouter);
+
+// Serve document files
+const documentsDir = path.join(__dirname, 'documents');
+fs.mkdir(documentsDir, { recursive: true }).catch(console.error);
+app.use('/api/documents/files', express.static(documentsDir));
 
 // Health check
 app.get('/api/health', (req, res) => {
