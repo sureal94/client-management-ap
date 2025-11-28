@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 /* Prevent horizontal scrolling */
-html, body {
+html,
+body {
   overflow-x: hidden;
   max-width: 100vw;
 }
@@ -27,22 +28,23 @@ body {
 
 /* Mobile-friendly touch targets */
 @media (max-width: 768px) {
-  button, 
-  a, 
-  input[type="button"], 
+
+  button,
+  a,
+  input[type="button"],
   input[type="submit"],
   .clickable {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   /* Improve table responsiveness */
   table {
     display: block;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Prevent text from causing overflow */
   * {
     word-wrap: break-word;
@@ -51,10 +53,11 @@ body {
 }
 
 /* Ensure forms are mobile-friendly */
-input, 
-textarea, 
+input,
+textarea,
 select {
-  font-size: 16px; /* Prevents zoom on iOS */
+  font-size: 16px;
+  /* Prevents zoom on iOS */
 }
 
 /* Better scrolling on mobile */
@@ -65,4 +68,32 @@ select {
 /* Ensure modals don't cause overflow */
 .fixed {
   max-width: 100vw;
+}
+
+/* Ensure buttons and links are always clickable */
+button,
+a {
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+
+/* Ensure dropdown menus are above everything */
+.z-50 {
+  z-index: 50 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure navigation bar is above content but below modals */
+.z-40 {
+  z-index: 40 !important;
+}
+
+/* Prevent any overlay from blocking clicks */
+nav {
+  pointer-events: auto !important;
+}
+
+/* Ensure menu dropdowns don't have pointer-events issues */
+nav .absolute {
+  pointer-events: auto !important;
 }

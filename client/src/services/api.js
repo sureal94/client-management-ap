@@ -131,20 +131,36 @@ export const fetchPersonalDocuments = () => {
 
 export const uploadClientDocument = (clientId, file) => {
   const formData = new FormData();
-  formData.append('file', file);
+  // Append file with explicit filename to ensure UTF-8 encoding
+  // The browser will automatically encode the filename in the Content-Disposition header
+  formData.append('file', file, file.name);
   return fetch(`${API_BASE_URL}/documents/client/${clientId}`, {
     method: 'POST',
     body: formData,
+    // Don't set Content-Type header - let browser set it with boundary for multipart/form-data
   }).then(handleResponse);
 };
 
 export const uploadPersonalDocument = (file) => {
   const formData = new FormData();
-  formData.append('file', file);
+  // Append file with explicit filename to ensure UTF-8 encoding
+  formData.append('file', file, file.name);
+  
   return fetch(`${API_BASE_URL}/documents/personal`, {
     method: 'POST',
     body: formData,
-  }).then(handleResponse);
+    // Don't set Content-Type header - let browser set it with boundary for multipart/form-data
+  })
+    .then(response => {
+      return handleResponse(response);
+    })
+    .catch(error => {
+      // Enhanced error handling for network errors
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error('Network error: Could not connect to server. Make sure the backend server is running on port 5000.');
+      }
+      throw error;
+    });
 };
 
 export const deleteDocument = (id) => {

@@ -25,7 +25,7 @@ const Layout = ({ children }) => {
         const clients = await fetchClients();
         const now = new Date();
         const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        
+
         // Collect all reminders from all clients that are within 24 hours or overdue
         const allReminders = [];
         clients.forEach(client => {
@@ -45,7 +45,7 @@ const Layout = ({ children }) => {
             });
           }
         });
-        
+
         // Sort by date (earliest first)
         allReminders.sort((a, b) => new Date(a.date) - new Date(b.date));
         setUpcomingReminders(allReminders);
@@ -53,7 +53,7 @@ const Layout = ({ children }) => {
         console.error('Failed to load reminders:', err);
       }
     };
-    
+
     loadReminders();
     // Refresh every minute
     const interval = setInterval(loadReminders, 60000);
@@ -69,7 +69,7 @@ const Layout = ({ children }) => {
     const now = new Date();
     const diffMs = date - now;
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     if (diffMs < 0) return t('overdue') || 'Overdue';
     if (diffDays === 0) return t('today') || 'Today';
     if (diffDays === 1) return t('tomorrow') || 'Tomorrow';
@@ -80,14 +80,23 @@ const Layout = ({ children }) => {
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      // Check if click is inside menu
+      if (menuRef.current && menuRef.current.contains(event.target)) {
+        return; // Don't close if clicking inside menu
+      }
+
+      // Close menu if clicking outside
+      if (menuRef.current) {
         setIsMenuOpen(false);
       }
+
+      // Close notification if clicking outside
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
         setIsNotificationOpen(false);
       }
     };
 
+    // Use mousedown instead of click to avoid interfering with button clicks
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -115,15 +124,14 @@ const Layout = ({ children }) => {
               <Link to="/" className="flex-shrink-0">
                 <img src={logo} alt="כנען סנטר" className="h-12 max-w-[180px] object-contain" />
               </Link>
-              {navItems.slice(0, 3).map((item) => (
+              {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`inline-flex items-center px-3 py-2 border-b-2 text-sm font-medium transition-colors ${
-                    item.isActive
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-300 hover:text-white hover:border-gray-300'
-                  }`}
+                  className={`inline-flex items-center px-3 py-2 border-b-2 text-sm font-medium transition-colors ${item.isActive
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-300 hover:text-white hover:border-gray-300'
+                    }`}
                 >
                   <item.icon className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" />
                   {item.label}
@@ -168,9 +176,8 @@ const Layout = ({ children }) => {
                                 navigate(`/clients`);
                                 setIsNotificationOpen(false);
                               }}
-                              className={`w-full p-3 text-left hover:bg-gray-50 transition-colors ${
-                                reminder.isUrgent ? 'bg-red-50' : ''
-                              }`}
+                              className={`w-full p-3 text-left hover:bg-gray-50 transition-colors ${reminder.isUrgent ? 'bg-red-50' : ''
+                                }`}
                             >
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex-1 min-w-0">
@@ -183,11 +190,10 @@ const Layout = ({ children }) => {
                                     </p>
                                   )}
                                 </div>
-                                <div className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                                  reminder.isUrgent 
-                                    ? 'bg-red-100 text-red-700' 
-                                    : 'bg-blue-100 text-blue-700'
-                                }`}>
+                                <div className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${reminder.isUrgent
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-blue-100 text-blue-700'
+                                  }`}>
                                   <span className="flex items-center gap-1">
                                     <Clock className="w-3 h-3" />
                                     {formatReminderTime(reminder.date)}
@@ -210,9 +216,14 @@ const Layout = ({ children }) => {
               {/* Hamburger Menu */}
               <div className="relative" ref={menuRef}>
                 <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 focus:outline-none transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsMenuOpen(!isMenuOpen);
+                  }}
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 focus:outline-none transition-colors cursor-pointer"
                   aria-label="Menu"
+                  type="button"
                 >
                   {isMenuOpen ? (
                     <X className="w-6 h-6" />
@@ -223,31 +234,44 @@ const Layout = ({ children }) => {
 
                 {/* Dropdown Menu */}
                 {isMenuOpen && (
-                  <div className="absolute top-full right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  <div
+                    className="absolute top-full right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {/* Import Option */}
-                    <button
-                      onClick={() => {
-                        navigate('/import');
-                        setIsMenuOpen(false);
+                    <Link
+                      to="/import"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Let Link handle navigation naturally
+                        // Close menu after navigation starts
+                        setTimeout(() => {
+                          setIsMenuOpen(false);
+                        }, 150);
                       }}
-                      className={`w-full flex items-center px-4 py-3 text-sm hover:bg-gray-100 transition-colors ${
-                        isActive('/import') ? 'text-primary bg-orange-50' : 'text-gray-700'
-                      }`}
+                      className={`w-full flex items-center px-4 py-3 text-sm hover:bg-gray-100 transition-colors cursor-pointer ${isActive('/import') ? 'text-primary bg-orange-50' : 'text-gray-700'
+                        }`}
                     >
                       <Upload className="w-5 h-5 mr-3 rtl:ml-3 rtl:mr-0" />
                       {t('import')}
-                    </button>
+                    </Link>
 
                     {/* Divider */}
                     <div className="border-t border-gray-200 my-2"></div>
 
                     {/* Language Toggle */}
                     <button
-                      onClick={() => {
-                        toggleLanguage();
-                        setIsMenuOpen(false);
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Use requestAnimationFrame to ensure this runs before any other handlers
+                        requestAnimationFrame(() => {
+                          toggleLanguage();
+                        });
+                        setTimeout(() => setIsMenuOpen(false), 200);
                       }}
-                      className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                     >
                       <Globe className="w-5 h-5 mr-3 rtl:ml-3 rtl:mr-0" />
                       {language === 'en' ? t('hebrew') : t('english')}
@@ -265,7 +289,7 @@ const Layout = ({ children }) => {
               <Link to="/" className="flex-shrink-0">
                 <img src={logo} alt="כנען סנטר" className="h-10 max-w-[120px] object-contain" />
               </Link>
-              
+
               <div className="flex items-center gap-1">
                 {/* Notification Bell */}
                 <div className="relative" ref={notificationRef}>
@@ -303,9 +327,8 @@ const Layout = ({ children }) => {
                                   navigate(`/clients`);
                                   setIsNotificationOpen(false);
                                 }}
-                                className={`w-full p-3 text-left hover:bg-gray-50 transition-colors ${
-                                  reminder.isUrgent ? 'bg-red-50' : ''
-                                }`}
+                                className={`w-full p-3 text-left hover:bg-gray-50 transition-colors ${reminder.isUrgent ? 'bg-red-50' : ''
+                                  }`}
                               >
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="flex-1 min-w-0">
@@ -318,11 +341,10 @@ const Layout = ({ children }) => {
                                       </p>
                                     )}
                                   </div>
-                                  <div className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                                    reminder.isUrgent 
-                                      ? 'bg-red-100 text-red-700' 
-                                      : 'bg-blue-100 text-blue-700'
-                                  }`}>
+                                  <div className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${reminder.isUrgent
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-blue-100 text-blue-700'
+                                    }`}>
                                     <span className="flex items-center gap-1">
                                       <Clock className="w-3 h-3" />
                                       {formatReminderTime(reminder.date)}
@@ -341,9 +363,14 @@ const Layout = ({ children }) => {
                 {/* Menu Button */}
                 <div className="relative" ref={menuRef}>
                   <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 focus:outline-none transition-colors"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsMenuOpen(!isMenuOpen);
+                    }}
+                    className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 focus:outline-none transition-colors cursor-pointer"
                     aria-label="Menu"
+                    type="button"
                   >
                     {isMenuOpen ? (
                       <X className="w-5 h-5" />
@@ -354,14 +381,49 @@ const Layout = ({ children }) => {
 
                   {/* Mobile Menu Dropdown */}
                   {isMenuOpen && (
-                    <div className="absolute top-full right-0 rtl:right-auto rtl:left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    <div
+                      className="absolute top-full right-0 rtl:right-auto rtl:left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Import Option */}
+                      <Link
+                        to="/import"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Let Link handle navigation naturally
+                          // Close menu after navigation starts
+                          setTimeout(() => {
+                            setIsMenuOpen(false);
+                          }, 150);
+                        }}
+                        className={`w-full flex items-center px-4 py-3 text-sm hover:bg-gray-100 transition-colors cursor-pointer ${isActive('/import') ? 'text-primary bg-orange-50' : 'text-gray-700'
+                          }`}
+                      >
+                        <Upload className="w-5 h-5 mr-3 rtl:ml-3 rtl:mr-0" />
+                        {t('import')}
+                      </Link>
+
+                      {/* Divider */}
+                      <div className="border-t border-gray-200 my-2"></div>
+
                       {/* Language Toggle */}
                       <button
-                        onClick={() => {
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // Call toggleLanguage immediately
                           toggleLanguage();
-                          setIsMenuOpen(false);
+                          // Close menu after language change
+                          setTimeout(() => {
+                            setIsMenuOpen(false);
+                          }, 200);
                         }}
-                        className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        onMouseDown={(e) => {
+                          // Prevent mousedown from triggering click outside handler
+                          e.stopPropagation();
+                        }}
+                        className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                       >
                         <Globe className="w-5 h-5 mr-3 rtl:ml-3 rtl:mr-0" />
                         {language === 'en' ? t('hebrew') : t('english')}
@@ -378,11 +440,10 @@ const Layout = ({ children }) => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex flex-col items-center px-3 py-1.5 rounded-lg transition-colors min-w-[60px] ${
-                    item.isActive
-                      ? 'text-primary bg-gray-800'
-                      : 'text-gray-400 hover:text-white active:bg-gray-800'
-                  }`}
+                  className={`flex flex-col items-center px-3 py-1.5 rounded-lg transition-colors min-w-[60px] ${item.isActive
+                    ? 'text-primary bg-gray-800'
+                    : 'text-gray-400 hover:text-white active:bg-gray-800'
+                    }`}
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="text-[10px] mt-0.5 font-medium truncate max-w-full">
@@ -394,7 +455,7 @@ const Layout = ({ children }) => {
           </div>
         </div>
       </nav>
-      
+
       <main className="max-w-7xl mx-auto py-4 px-3 sm:py-6 sm:px-4 lg:px-8">
         {children}
       </main>

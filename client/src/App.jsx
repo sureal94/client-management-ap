@@ -7,21 +7,32 @@ import ImportPage from './pages/ImportPage';
 import DocumentsPage from './pages/DocumentsPage';
 
 function App() {
-  return (
-    <I18nProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<ProductsPage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/clients" element={<ClientsPage />} />
-            <Route path="/documents" element={<DocumentsPage />} />
-            <Route path="/import" element={<ImportPage />} />
-          </Routes>
-        </Layout>
-      </Router>
-    </I18nProvider>
-  );
+  try {
+    return (
+      <I18nProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<ProductsPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/clients" element={<ClientsPage />} />
+              <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/import" element={<ImportPage />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </I18nProvider>
+    );
+  } catch (error) {
+    console.error('Error in App component:', error);
+    return (
+      <div style={{ padding: '20px', color: 'red' }}>
+        <h1>Error Loading App</h1>
+        <p>{error.message}</p>
+        <p>Check the browser console for more details.</p>
+      </div>
+    );
+  }
 }
 
 export default App;

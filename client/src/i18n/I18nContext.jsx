@@ -27,7 +27,17 @@ export const I18nProvider = ({ children }) => {
   };
 
   const toggleLanguage = () => {
-    setLanguage(language === 'en' ? 'he' : 'en');
+    // Use functional update to ensure we get the current state
+    setLanguage((prevLanguage) => {
+      const newLanguage = prevLanguage === 'en' ? 'he' : 'en';
+      // Force immediate DOM update before React re-renders
+      document.documentElement.dir = newLanguage === 'he' ? 'rtl' : 'ltr';
+      document.documentElement.lang = newLanguage;
+      localStorage.setItem('language', newLanguage);
+      // Force a re-render by triggering a custom event
+      window.dispatchEvent(new Event('languagechange'));
+      return newLanguage;
+    });
   };
 
   return (

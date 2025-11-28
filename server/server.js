@@ -17,7 +17,19 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Ensure UTF-8 for JSON responses
+app.use((req, res, next) => {
+  // Store original json method
+  const originalJson = res.json;
+  res.json = function(body) {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    return originalJson.call(this, body);
+  };
+  next();
+});
 
 // Request logging middleware
 app.use((req, res, next) => {
