@@ -173,3 +173,87 @@ export const getDocumentDownloadUrl = (id) => {
   return `${API_BASE_URL}/documents/download/${id}`;
 };
 
+// User/Profile API functions
+export const getUserProfile = (token) => {
+  return fetch(`${API_BASE_URL}/users/profile`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  }).then(handleResponse);
+};
+
+export const updateUserProfile = (token, updates) => {
+  return fetch(`${API_BASE_URL}/users/profile`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(updates),
+  }).then(handleResponse);
+};
+
+export const updateUserEmail = (token, email, password) => {
+  return fetch(`${API_BASE_URL}/users/profile/email`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ email, password }),
+  }).then(handleResponse);
+};
+
+export const updateUserPassword = (token, currentPassword, newPassword) => {
+  return fetch(`${API_BASE_URL}/users/profile/password`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  }).then(handleResponse);
+};
+
+export const uploadProfilePicture = (token, file) => {
+  const formData = new FormData();
+  formData.append('picture', file);
+
+  return fetch(`${API_BASE_URL}/users/profile/picture`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  }).then(handleResponse);
+};
+
+export const deleteUserProfile = (token) => {
+  return fetch(`${API_BASE_URL}/users/profile`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  }).then(handleResponse);
+};
+
+export const requestPasswordReset = (email, phone) => {
+  return fetch(`${API_BASE_URL}/auth/forgot-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, phone }),
+  }).then(handleResponse);
+};
+
+export const resetPassword = (token, newPassword) => {
+  return fetch(`${API_BASE_URL}/auth/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token, newPassword }),
+  }).then(handleResponse);
+};
+

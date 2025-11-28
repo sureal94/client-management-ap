@@ -13,7 +13,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ["mammoth", "xlsx"]
+    include: ["xlsx"]
   }
 })
 

@@ -9,7 +9,8 @@ import {
   ChevronLeft,
   User,
   FolderOpen,
-  Clock
+  Clock,
+  Eye
 } from 'lucide-react';
 import {
   fetchClients,
@@ -21,6 +22,7 @@ import {
   getDocumentDownloadUrl
 } from '../services/api';
 import { format } from 'date-fns';
+import FilePreview from '../components/FilePreview';
 
 const DocumentsPage = () => {
   const { t } = useI18n();
@@ -32,6 +34,7 @@ const DocumentsPage = () => {
   const [activeTab, setActiveTab] = useState('clients');
   const [isUploading, setIsUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [previewDocument, setPreviewDocument] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -97,6 +100,9 @@ const DocumentsPage = () => {
         setSelectedClientDocs((docs) => docs.filter((d) => d.id !== id));
         setAllDocuments((docs) => docs.filter((d) => d.id !== id));
       }
+      if (previewDocument?.id === id) {
+        setPreviewDocument(null);
+      }
     } catch (err) {
       console.error('Delete failed:', err);
       alert('Failed to delete document: ' + (err.message || 'Unknown error'));
@@ -151,16 +157,26 @@ const DocumentsPage = () => {
                 </div>
               </div>
               <div className="flex gap-2">
-                <a href={getDocumentDownloadUrl(doc.id)} download={doc.originalName} className="p-2 text-blue-600">
+                <button onClick={() => setPreviewDocument(doc)} className="p-2 text-green-600 hover:text-green-700" title="Preview">
+                  <Eye />
+                </button>
+                <a href={getDocumentDownloadUrl(doc.id)} download={doc.originalName} className="p-2 text-blue-600 hover:text-blue-700" title="Download">
                   <Download />
                 </a>
-                <button onClick={() => handleDeleteDocument(doc.id)} className="p-2 text-red-600">
+                <button onClick={() => handleDeleteDocument(doc.id)} className="p-2 text-red-600 hover:text-red-700" title="Delete">
                   <Trash2 />
                 </button>
               </div>
             </div>
           ))}
         </div>
+        {previewDocument && (
+          <FilePreview
+            fileUrl={getDocumentDownloadUrl(previewDocument.id)}
+            fileName={previewDocument.originalName}
+            onClose={() => setPreviewDocument(null)}
+          />
+        )}
       </>
     );
   }
@@ -282,12 +298,16 @@ const DocumentsPage = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <a href={getDocumentDownloadUrl(doc.id)} download={doc.originalName} className="p-2 text-blue-600">
+                    <button onClick={() => setPreviewDocument(doc)} className="p-2 text-green-600 hover:text-green-700" title="Preview">
+                      <Eye />
+                    </button>
+                    <a href={getDocumentDownloadUrl(doc.id)} download={doc.originalName} className="p-2 text-blue-600 hover:text-blue-700" title="Download">
                       <Download />
                     </a>
                     <button
                       onClick={() => handleDeleteDocument(doc.id, true)}
-                      className="p-2 text-red-600"
+                      className="p-2 text-red-600 hover:text-red-700"
+                      title="Delete"
                     >
                       <Trash2 />
                     </button>
@@ -297,6 +317,15 @@ const DocumentsPage = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Preview Modal */}
+      {previewDocument && (
+        <FilePreview
+          fileUrl={getDocumentDownloadUrl(previewDocument.id)}
+          fileName={previewDocument.originalName}
+          onClose={() => setPreviewDocument(null)}
+        />
       )}
     </div>
   );

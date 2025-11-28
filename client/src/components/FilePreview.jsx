@@ -21,7 +21,8 @@ const FilePreview = ({ file, fileUrl, fileName, onClose, onDownload }) => {
 
     if (lower.match(/\.(xlsx|xls)$/)) return "excel";
 
-    if (lower.endsWith(".docx") || mime.includes("wordprocessingml")) return "word";
+    // Word preview disabled if mammoth not available - treat as unsupported for now
+    // if (lower.endsWith(".docx") || mime.includes("wordprocessingml")) return "word";
 
     return "unsupported";
   };
@@ -125,46 +126,6 @@ const FilePreview = ({ file, fileUrl, fileName, onClose, onDownload }) => {
     }
   };
 
-  /** Word Preview */
-  const loadWord = async (fileObj, url) => {
-    try {
-      // Import mammoth - use standard import
-      const mammothModule = await import("mammoth");
-      const mammoth = mammothModule.default || mammothModule;
-      
-      if (!mammoth || typeof mammoth.convertToHtml !== 'function') {
-        throw new Error('Failed to load mammoth');
-      }
-
-      let buffer;
-
-      if (fileObj) buffer = await fileObj.arrayBuffer();
-      else if (url) {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch Word document: ${response.status} ${response.statusText}`);
-        }
-        buffer = await response.arrayBuffer();
-      }
-      else throw new Error("No file data");
-
-      const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
-
-      const div = document.createElement("div");
-      div.className = "prose max-w-none p-4";
-      div.innerHTML = result.value;
-
-      if (previewContainerRef.current) {
-        previewContainerRef.current.innerHTML = "";
-        previewContainerRef.current.appendChild(div);
-      }
-
-      setLoading(false);
-    } catch (err) {
-      setError("Unable to preview Word document");
-      setLoading(false);
-    }
-  };
 
   /** Load Preview */
   useEffect(() => {
@@ -193,10 +154,6 @@ const FilePreview = ({ file, fileUrl, fileName, onClose, onDownload }) => {
 
         case "excel":
           await loadExcel(file, fileUrl);
-          break;
-
-        case "word":
-          await loadWord(file, fileUrl);
           break;
 
         default:

@@ -8,6 +8,8 @@ import { productsRouter } from './routes/products.js';
 import { clientsRouter } from './routes/clients.js';
 import { importRouter } from './routes/import.js';
 import { documentsRouter } from './routes/documents.js';
+import { authRouter } from './routes/auth.js';
+import { usersRouter } from './routes/users.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,6 +66,8 @@ async function initData() {
     await fs.writeFile(dataFile, JSON.stringify({
       products: [],
       clients: [],
+      users: [],
+      passwordResetTokens: []
     }));
   }
 }
@@ -75,6 +79,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Routes
+app.use('/api/auth', authRouter);
+app.use('/api/users', usersRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/clients', clientsRouter);
 app.use('/api/import', importRouter);

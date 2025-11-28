@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nContext';
-import { Package, Users, Upload, Globe, Menu, X, Bell, Calendar, Clock, FileText } from 'lucide-react';
+import { Package, Users, Upload, Globe, Menu, X, Bell, Calendar, Clock, FileText, User } from 'lucide-react';
 import { fetchClients } from '../services/api';
 import { format } from 'date-fns';
+import { useAuth } from '../contexts/AuthContext';
 import logo from '../assets/IMG-20251124-WA0020.jpg';
 
 const Layout = ({ children }) => {
   const { t, language, toggleLanguage } = useI18n();
+  const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -140,6 +142,17 @@ const Layout = ({ children }) => {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Profile Icon */}
+              {user && (
+                <Link
+                  to="/profile"
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 focus:outline-none transition-colors"
+                  title={t('profile') || 'Profile'}
+                >
+                  <User className="w-6 h-6" />
+                </Link>
+              )}
+
               {/* Notification Bell */}
               <div className="relative" ref={notificationRef}>
                 <button
@@ -291,6 +304,17 @@ const Layout = ({ children }) => {
               </Link>
 
               <div className="flex items-center gap-1">
+                {/* Profile Icon */}
+                {user && (
+                  <Link
+                    to="/profile"
+                    className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 focus:outline-none transition-colors"
+                    title={t('profile') || 'Profile'}
+                  >
+                    <User className="w-5 h-5" />
+                  </Link>
+                )}
+
                 {/* Notification Bell */}
                 <div className="relative" ref={notificationRef}>
                   <button
