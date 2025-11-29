@@ -660,6 +660,15 @@
       "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "size": 17759,
       "uploadedAt": "2025-11-29T15:35:06.603Z"
+    },
+    {
+      "id": "1764430949212",
+      "clientId": null,
+      "originalName": "client_list.xlsx",
+      "fileName": "1764430949204-client_list.xlsx",
+      "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "size": 5281,
+      "uploadedAt": "2025-11-29T15:42:29.212Z"
     }
   ],
   "users": [
@@ -669,7 +678,7 @@
       "password": "$2b$10$oatuwlQ.8.vnj8QcAZWcHOsWFKFLTi7xon/UhL56XlqTi/IEXN3Je",
       "fullName": "Sureal Crowder",
       "createdAt": "2025-11-28T21:11:29.652Z",
-      "lastLogin": "2025-11-29T15:26:19.363Z",
+      "lastLogin": "2025-11-29T15:52:47.735Z",
       "phone": null,
       "profilePicture": "/api/users/profile-pictures/profile-1764364289652nv9m0nbm1-1764365700369.jpg",
       "darkMode": false

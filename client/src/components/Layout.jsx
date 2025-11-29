@@ -250,6 +250,7 @@ const Layout = ({ children }) => {
                   <div
                     className="absolute top-full right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
                     onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
                   >
                     {/* Import Option */}
                     <Link
@@ -261,6 +262,10 @@ const Layout = ({ children }) => {
                         setTimeout(() => {
                           setIsMenuOpen(false);
                         }, 150);
+                      }}
+                      onMouseDown={(e) => {
+                        // Prevent mousedown from triggering click outside handler
+                        e.stopPropagation();
                       }}
                       className={`w-full flex items-center px-4 py-3 text-sm hover:bg-gray-100 transition-colors cursor-pointer ${isActive('/import') ? 'text-primary bg-orange-50' : 'text-gray-700'
                         }`}
@@ -278,11 +283,17 @@ const Layout = ({ children }) => {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        // Use requestAnimationFrame to ensure this runs before any other handlers
-                        requestAnimationFrame(() => {
-                          toggleLanguage();
-                        });
-                        setTimeout(() => setIsMenuOpen(false), 200);
+                        // Call toggleLanguage immediately
+                        toggleLanguage();
+                        // Close menu after language change
+                        setTimeout(() => {
+                          setIsMenuOpen(false);
+                        }, 200);
+                      }}
+                      onMouseDown={(e) => {
+                        // Prevent mousedown from triggering click outside handler
+                        e.preventDefault();
+                        e.stopPropagation();
                       }}
                       className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                     >
