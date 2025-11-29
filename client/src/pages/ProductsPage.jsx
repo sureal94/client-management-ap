@@ -25,7 +25,7 @@ const ProductsPage = () => {
   const handleAdd = async (productData) => {
     try {
       const newProduct = await createProduct(productData);
-      setProducts([...products, newProduct]);
+      setProducts([...products, newProduct]); // Count updates automatically
     } catch (error) {
       console.error('Error adding product:', error);
       const errorMessage = error.message || 'Failed to add product';

@@ -15,50 +15,66 @@ const Layout = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [upcomingReminders, setUpcomingReminders] = useState([]);
+  const [productCount, setProductCount] = useState(0);
+  const [documentCount, setDocumentCount] = useState(0);
   const menuRef = useRef(null);
   const notificationRef = useRef(null);
 
   const isActive = (path) => location.pathname === path;
 
-  // Fetch reminders from all clients
+  // Fetch reminders and counts
   useEffect(() => {
-    const loadReminders = async () => {
+    const loadData = async () => {
       try {
-        const clients = await fetchClients();
+        const [clients, products, allDocs, personalDocs] = await Promise.all([
+          fetchClients().catch(() => []),
+          fetchProducts().catch(() => []),
+          fetchAllDocuments().catch(() => []),
+          fetchPersonalDocuments().catch(() => [])
+        ]);
+
+        // Set product count
+        setProductCount(products.length || 0);
+
+        // Set document count (personal + client documents)
+        const clientDocIds = new Set();
+        clients.forEach(client => {
+          if (client.id) clientDocIds.add(client.id);
+        });
+        const clientDocs = allDocs.filter(d => d.clientId && clientDocIds.has(d.clientId));
+        setDocumentCount((personalDocs.length || 0) + (clientDocs.length || 0));
+
+        // Load reminders
         const now = new Date();
         const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
-        // Collect all reminders from all clients that are within 24 hours or overdue
         const allReminders = [];
         clients.forEach(client => {
           if (client.reminders && client.reminders.length > 0) {
             client.reminders.forEach(reminder => {
               const reminderDate = new Date(reminder.date);
-              // Include reminders that are overdue or within the next 7 days
               const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
               if (reminderDate <= in7Days) {
                 allReminders.push({
                   ...reminder,
                   clientId: client.id,
                   clientName: client.name || reminder.clientName,
-                  isUrgent: reminderDate <= in24Hours // Within 24 hours or overdue
+                  isUrgent: reminderDate <= in24Hours
                 });
               }
             });
           }
         });
 
-        // Sort by date (earliest first)
         allReminders.sort((a, b) => new Date(a.date) - new Date(b.date));
         setUpcomingReminders(allReminders);
       } catch (err) {
-        console.error('Failed to load reminders:', err);
+        console.error('Failed to load data:', err);
       }
     };
 
-    loadReminders();
+    loadData();
     // Refresh every minute
-    const interval = setInterval(loadReminders, 60000);
+    const interval = setInterval(loadData, 60000);
     return () => clearInterval(interval);
   }, [location.pathname]); // Refresh when navigating
 
@@ -108,12 +124,34 @@ const Layout = ({ children }) => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  // Navigation items
+  // Navigation items with counts
   const navItems = [
-    { path: '/products', icon: Package, label: t('products'), isActive: isActive('/products') || isActive('/') },
-    { path: '/clients', icon: Users, label: t('clients'), isActive: isActive('/clients') },
-    { path: '/documents', icon: FileText, label: t('documents'), isActive: isActive('/documents') },
-    { path: '/import', icon: Upload, label: t('import'), isActive: isActive('/import') },
+    { 
+      path: '/products', 
+      icon: Package, 
+      label: t('products'), 
+      count: productCount,
+      isActive: isActive('/products') || isActive('/') 
+    },
+    { 
+      path: '/clients', 
+      icon: Users, 
+      label: t('clients'), 
+      isActive: isActive('/clients') 
+    },
+    { 
+      path: '/documents', 
+      icon: FileText, 
+      label: t('documents'), 
+      count: documentCount,
+      isActive: isActive('/documents') 
+    },
+    { 
+      path: '/import', 
+      icon: Upload, 
+      label: t('import'), 
+      isActive: isActive('/import') 
+    },
   ];
 
   return (
@@ -475,15 +513,21 @@ const Layout = ({ children }) => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex flex-col items-center px-3 py-1.5 rounded-lg transition-colors min-w-[60px] ${item.isActive
+                  className={`flex flex-col items-center px-3 py-1.5 rounded-lg transition-colors min-w-[60px] relative ${item.isActive
                     ? 'text-primary bg-gray-800'
                     : 'text-gray-400 hover:text-white active:bg-gray-800'
                     }`}
+                  title={item.count !== undefined ? `${item.label}: ${item.count}` : item.label}
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="text-[10px] mt-0.5 font-medium truncate max-w-full">
                     {item.label}
                   </span>
+                  {item.count !== undefined && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {item.count > 99 ? '99+' : item.count}
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>

@@ -197,12 +197,26 @@ const DocumentsPage = () => {
     );
   }
 
+  // Calculate total document count
+  const isAdmin = window.location.pathname.startsWith('/admin');
+  const totalDocumentsCount = isAdmin 
+    ? allDocuments.length 
+    : (personalDocuments.length + allDocuments.filter(d => d.clientId && clients.some(c => c.id === d.clientId)).length);
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <FileText className="w-7 h-7 text-primary" /> {t('documents') || 'Documents'}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <FileText className="w-7 h-7 text-primary" /> {t('documents') || 'Documents'}
+          </h1>
+          <span 
+            className="bg-primary text-white px-3 py-1 rounded-full text-sm font-semibold"
+            title={isAdmin ? `Total: ${totalDocumentsCount} documents` : `You have ${totalDocumentsCount} documents`}
+          >
+            {totalDocumentsCount}
+          </span>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -212,18 +226,28 @@ const DocumentsPage = () => {
             setActiveTab('clients');
             setDocumentSearchTerm(''); // Clear personal documents search when switching
           }}
-          className={`px-4 py-2 rounded-lg ${activeTab === 'clients' ? 'bg-primary text-white' : 'bg-gray-100'}`}
+          className={`px-4 py-2 rounded-lg flex items-center gap-2 ${activeTab === 'clients' ? 'bg-primary text-white' : 'bg-gray-100'}`}
         >
-          Clients
+          <span>{isAdmin ? 'Clients' : 'Clients'}</span>
+          {activeTab === 'clients' && (
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs font-semibold">
+              {clientsWithDocs.length}
+            </span>
+          )}
         </button>
         <button
           onClick={() => {
             setActiveTab('personal');
             setClientSearchTerm(''); // Clear clients search when switching
           }}
-          className={`px-4 py-2 rounded-lg ${activeTab === 'personal' ? 'bg-primary text-white' : 'bg-gray-100'}`}
+          className={`px-4 py-2 rounded-lg flex items-center gap-2 ${activeTab === 'personal' ? 'bg-primary text-white' : 'bg-gray-100'}`}
         >
-          My Documents
+          <span>{isAdmin ? 'All Documents' : 'My Documents'}</span>
+          {activeTab === 'personal' && (
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs font-semibold">
+              {personalDocuments.length}
+            </span>
+          )}
         </button>
       </div>
 

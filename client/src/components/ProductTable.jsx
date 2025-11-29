@@ -121,7 +121,15 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
       {/* Header */}
       <div className="p-4 sm:p-6 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-black">{t('products')}</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-black">{t('products')}</h2>
+            <span 
+              className="bg-primary text-white px-3 py-1 rounded-full text-sm font-semibold"
+              title={t('totalProducts') || `You have ${products.length} products`}
+            >
+              {products.length}
+            </span>
+          </div>
           <div className="flex gap-2 w-full sm:w-auto">
             <button
               onClick={handleAdd}
