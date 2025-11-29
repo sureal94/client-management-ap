@@ -66,6 +66,8 @@ router.post('/register', async (req, res) => {
       fullName: fullName || email.split('@')[0],
       createdAt: new Date().toISOString(),
       lastLogin: null,
+      lastActive: null, // Track last activity (login/logout)
+      isOnline: false, // Track online status
       phone: null,
       profilePicture: null,
       darkMode: false
@@ -118,8 +120,11 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Update last login
-    user.lastLogin = new Date().toISOString();
+    // Update last login, lastActive, and set online status
+    const now = new Date().toISOString();
+    user.lastLogin = now;
+    user.lastActive = now; // Update last activity timestamp
+    user.isOnline = true; // Set user as online
     await saveUsers(users);
 
     // Generate JWT token
@@ -144,7 +149,8 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Failed to login' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to login: ' + error.message });
   }
 });
 
@@ -244,6 +250,37 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// Logout endpoint - no auth required (user might be logging out with expired token)
+router.post('/logout', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (token) {
+      try {
+        const decoded = jwt.decode(token); // Decode without verification (token might be expired)
+        if (decoded && decoded.userId) {
+          const users = await getUsers();
+          const user = users.find(u => u.id === decoded.userId);
+          if (user) {
+            // Update lastActive and set offline
+            const now = new Date().toISOString();
+            user.lastActive = now;
+            user.isOnline = false; // Set user as offline
+            await saveUsers(users);
+          }
+        }
+      } catch (e) {
+        // Ignore decode errors
+      }
+    }
+
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Failed to logout' });
+  }
+});
+
 // Verify token (for protected routes)
 router.get('/verify', async (req, res) => {
   try {
@@ -261,6 +298,11 @@ router.get('/verify', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Update lastActive on verification (user is active)
+    user.lastActive = new Date().toISOString();
+    user.isOnline = true;
+    await saveUsers(users);
+
     res.json({
       user: {
         id: user.id,
@@ -274,6 +316,20 @@ router.get('/verify', async (req, res) => {
       }
     });
   } catch (error) {
+    // Token expired or invalid - try to set user offline
+    try {
+      const decoded = jwt.decode(req.headers.authorization?.replace('Bearer ', ''));
+      if (decoded && decoded.userId) {
+        const users = await getUsers();
+        const user = users.find(u => u.id === decoded.userId);
+        if (user && user.isOnline) {
+          user.isOnline = false;
+          await saveUsers(users);
+        }
+      }
+    } catch (e) {
+      // Ignore errors in cleanup
+    }
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 });

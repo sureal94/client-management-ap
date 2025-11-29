@@ -33,7 +33,7 @@ const ProfilePage = () => {
   const { t } = useI18n();
   const { user, token, logout, updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
-  const [stats, setStats] = useState({ clientCount: 0, productCount: 0 });
+  const [stats, setStats] = useState({ clientCount: 0, productCount: 0, documentCount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -64,21 +64,54 @@ const ProfilePage = () => {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    loadProfile();
+    // Reset stats immediately when token changes (user logs in/out)
+    // This prevents showing old user's counts
+    setStats({ clientCount: 0, productCount: 0, documentCount: 0 });
+    setProfile(null); // Clear profile to prevent showing old data
+    if (token) {
+      loadProfile();
+    }
   }, [token]);
 
   const loadProfile = async () => {
-    if (!token) return;
+    if (!token) {
+      // Clear stats if no token
+      setStats({ clientCount: 0, productCount: 0, documentCount: 0 });
+      setProfile(null);
+      return;
+    }
     setLoading(true);
+    setError(''); // Clear any previous errors
     try {
+      // Reset stats BEFORE fetching to ensure no old values are shown
+      setStats({ clientCount: 0, productCount: 0, documentCount: 0 });
+      
+      // Fetch fresh data from server (no caching)
       const data = await getUserProfile(token);
-      setProfile(data.user);
-      setStats(data.stats);
-      setFullName(data.user.fullName);
-      setPhone(data.user.phone || '');
-      setEmail(data.user.email);
+      
+      // Only update if we got valid data
+      if (data && data.user) {
+        setProfile(data.user);
+        // Set stats - ensure they're numbers, never undefined
+        setStats({
+          clientCount: typeof data.stats?.clientCount === 'number' ? data.stats.clientCount : 0,
+          productCount: typeof data.stats?.productCount === 'number' ? data.stats.productCount : 0,
+          documentCount: typeof data.stats?.documentCount === 'number' ? data.stats.documentCount : 0
+        });
+        setFullName(data.user.fullName || '');
+        setPhone(data.user.phone || '');
+        setEmail(data.user.email || '');
+      } else {
+        // Invalid response - reset everything
+        setStats({ clientCount: 0, productCount: 0, documentCount: 0 });
+        setProfile(null);
+      }
     } catch (err) {
+      console.error('Error loading profile:', err);
       setError(err.message || 'Failed to load profile');
+      // Reset stats on error to prevent showing stale data
+      setStats({ clientCount: 0, productCount: 0, documentCount: 0 });
+      setProfile(null);
     } finally {
       setLoading(false);
     }

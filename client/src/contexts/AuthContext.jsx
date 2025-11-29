@@ -106,11 +106,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Call logout endpoint to update user status on server
+    const currentToken = token || localStorage.getItem('token');
+    if (currentToken) {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${currentToken}`
+          }
+        });
+      } catch (error) {
+        // Ignore errors - user is logging out anyway
+        console.warn('Logout API call failed:', error);
+      }
+    }
+    
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('adminToken'); // Also clear admin token if exists
     window.location.href = '/login';
   };
 

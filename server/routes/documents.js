@@ -3,11 +3,24 @@ import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
+import { authenticateToken } from '../middleware/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const documentsRouter = express.Router();
+
+// Helper to check if user is admin
+const isAdmin = async (userId) => {
+  try {
+    const data = await getData();
+    const users = data.users || [];
+    const user = users.find(u => u.id === userId);
+    return user && user.role === 'admin';
+  } catch {
+    return false;
+  }
+};
 
 // Create documents directory
 const documentsDir = path.join(__dirname, '../documents');
@@ -144,11 +157,19 @@ function fixCorruptedFilename(originalName) {
 }
 
 // Get all documents (both client and personal)
-documentsRouter.get('/', async (req, res) => {
+documentsRouter.get('/', authenticateToken, async (req, res) => {
   try {
     const data = await getData();
+    const admin = await isAdmin(req.userId);
+    
+    // Admin sees all documents, regular users see ONLY their own (strict filtering)
+    let documents = data.documents || [];
+    if (!admin) {
+      documents = documents.filter(d => d.userId === req.userId); // STRICT: Only items with matching userId
+    }
+    
     // Fix any corrupted filenames before returning
-    const fixedDocuments = (data.documents || []).map(doc => ({
+    const fixedDocuments = documents.map(doc => ({
       ...doc,
       originalName: fixCorruptedFilename(doc.originalName)
     }));
@@ -159,37 +180,55 @@ documentsRouter.get('/', async (req, res) => {
 });
 
 // Get documents for a specific client
-documentsRouter.get('/client/:clientId', async (req, res) => {
+documentsRouter.get('/client/:clientId', authenticateToken, async (req, res) => {
   try {
     const data = await getData();
-    const clientDocs = (data.documents || []).filter(
+    const admin = await isAdmin(req.userId);
+    
+    let clientDocs = (data.documents || []).filter(
       d => d.clientId === req.params.clientId
-    ).map(doc => ({
+    );
+    
+    // Filter by userId unless admin - STRICT
+    if (!admin) {
+      clientDocs = clientDocs.filter(d => d.userId === req.userId);
+    }
+    
+    const fixedDocs = clientDocs.map(doc => ({
       ...doc,
       originalName: fixCorruptedFilename(doc.originalName)
     }));
-    res.json(clientDocs);
+    res.json(fixedDocs);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // Get personal documents (not attached to any client)
-documentsRouter.get('/personal', async (req, res) => {
+documentsRouter.get('/personal', authenticateToken, async (req, res) => {
   try {
     const data = await getData();
-    const personalDocs = (data.documents || []).filter(d => !d.clientId).map(doc => ({
+    const admin = await isAdmin(req.userId);
+    
+    let personalDocs = (data.documents || []).filter(d => !d.clientId);
+    
+    // Filter by userId unless admin - STRICT
+    if (!admin) {
+      personalDocs = personalDocs.filter(d => d.userId === req.userId);
+    }
+    
+    const fixedDocs = personalDocs.map(doc => ({
       ...doc,
       originalName: fixCorruptedFilename(doc.originalName)
     }));
-    res.json(personalDocs);
+    res.json(fixedDocs);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // Upload document for a client
-documentsRouter.post('/client/:clientId', upload.single('file'), async (req, res) => {
+documentsRouter.post('/client/:clientId', authenticateToken, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -217,6 +256,7 @@ documentsRouter.post('/client/:clientId', upload.single('file'), async (req, res
 
     const newDoc = {
       id: Date.now().toString(),
+      userId: req.userId, // Assign to current user
       clientId: req.params.clientId,
       originalName: originalName,
       fileName: req.file.filename,
@@ -235,7 +275,7 @@ documentsRouter.post('/client/:clientId', upload.single('file'), async (req, res
 });
 
 // Upload personal document
-documentsRouter.post('/personal', upload.single('file'), async (req, res) => {
+documentsRouter.post('/personal', authenticateToken, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -263,6 +303,7 @@ documentsRouter.post('/personal', upload.single('file'), async (req, res) => {
 
     const newDoc = {
       id: Date.now().toString(),
+      userId: req.userId, // Assign to current user
       clientId: null, // Personal document
       originalName: originalName,
       fileName: req.file.filename,
@@ -346,7 +387,7 @@ documentsRouter.post('/fix-filenames', async (req, res) => {
 });
 
 // Delete document
-documentsRouter.delete('/:id', async (req, res) => {
+documentsRouter.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const data = await getData();
     const docIndex = (data.documents || []).findIndex(d => d.id === req.params.id);
@@ -356,6 +397,15 @@ documentsRouter.delete('/:id', async (req, res) => {
     }
 
     const doc = data.documents[docIndex];
+    
+    // Check if user has access (admin or owner) - STRICT
+    const admin = await isAdmin(req.userId);
+    if (!admin) {
+      // Regular users can only delete their own documents
+      if (!doc.userId || doc.userId !== req.userId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
     
     // Delete file from filesystem
     try {

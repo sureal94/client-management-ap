@@ -9,6 +9,12 @@ import DocumentsPage from './pages/DocumentsPage';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfilePage from './pages/ProfilePage';
+import UsersPage from './pages/UsersPage';
+import AdminLoginPage from './pages/AdminLoginPage';
+import AdminChangePasswordPage from './pages/AdminChangePasswordPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminUsersPage from './pages/AdminUsersPage';
+import AdminLayout from './components/AdminLayout';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -57,6 +63,50 @@ function AppRoutes() {
       } />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
+      {/* Admin Routes */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/admin/change-password" element={<AdminChangePasswordPage />} />
+      <Route
+        path="/admin/dashboard"
+        element={
+          <AdminLayout>
+            <AdminDashboardPage />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AdminLayout>
+            <AdminUsersPage />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/clients"
+        element={
+          <AdminLayout>
+            <ClientsPage />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/products"
+        element={
+          <AdminLayout>
+            <ProductsPage />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/documents"
+        element={
+          <AdminLayout>
+            <DocumentsPage />
+          </AdminLayout>
+        }
+      />
+
       {/* Protected Routes */}
       <Route path="/" element={
         <ProtectedRoute>
@@ -97,6 +147,13 @@ function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <ProfilePage />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/users" element={
+        <ProtectedRoute>
+          <Layout>
+            <UsersPage />
           </Layout>
         </ProtectedRoute>
       } />

@@ -10,11 +10,21 @@ export async function readData() {
   try {
     const data = await fs.readFile(dataFile, 'utf8');
     const parsed = JSON.parse(data);
-    console.log('Data file read successfully from:', dataFile);
+    // Ensure all required top-level keys exist
+    if (!parsed.users) parsed.users = [];
+    if (!parsed.products) parsed.products = [];
+    if (!parsed.clients) parsed.clients = [];
+    if (!parsed.documents) parsed.documents = [];
     return parsed;
   } catch (error) {
     console.log('Data file not found or invalid, using empty data:', error.message);
-    return { products: [], clients: [] };
+    return { 
+      users: [], 
+      products: [], 
+      clients: [], 
+      documents: [],
+      passwordResetTokens: []
+    };
   }
 }
 

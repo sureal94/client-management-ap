@@ -48,13 +48,24 @@ const ProductsPage = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    const product = products.find(p => p.id === id);
+    const productName = product?.nameEn || product?.name || 'this product';
+    const isAdmin = window.location.pathname.startsWith('/admin');
+    const confirmMessage = isAdmin
+      ? `Are you sure you want to delete "${productName}"? This action cannot be undone.`
+      : `Are you sure you want to delete "${productName}"?`;
+    
+    if (window.confirm(confirmMessage)) {
       try {
         await deleteProduct(id);
+        // Remove from state immediately
         setProducts(products.filter(p => p.id !== id));
+        // Show success message
+        alert(isAdmin ? `Product "${productName}" deleted successfully.` : 'Product deleted successfully.');
       } catch (error) {
         console.error('Error deleting product:', error);
-        alert('Failed to delete product');
+        const errorMessage = error.message || 'Failed to delete product';
+        alert(`Failed to delete product: ${errorMessage}`);
       }
     }
   };

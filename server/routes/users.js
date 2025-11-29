@@ -71,6 +71,28 @@ async function saveUsers(users) {
   await writeData(data);
 }
 
+// Get all users (for admin/user management)
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const users = await getUsers();
+    // Return users without passwords
+    const safeUsers = users.map(user => ({
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      phone: user.phone,
+      profilePicture: user.profilePicture,
+      darkMode: user.darkMode,
+      createdAt: user.createdAt,
+      lastLogin: user.lastLogin
+    }));
+    res.json(safeUsers);
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ error: 'Failed to get users' });
+  }
+});
+
 // Get user profile
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
@@ -81,12 +103,18 @@ router.get('/profile', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Get client and product counts
+    // Get client, product, and document counts - STRICT: filter by userId
     const data = await readData();
-    // Count all clients (since existing clients may not have userId field)
-    // If you want user-specific clients, add userId when creating clients
-    const clients = data.clients || [];
-    const products = data.products || [];
+    // STRICT FILTERING: Only count items that have userId matching the current user
+    // Items without userId are NOT counted (they're orphaned data)
+    const clients = (data.clients || []).filter(c => c.userId === req.userId);
+    const products = (data.products || []).filter(p => p.userId === req.userId);
+    const documents = (data.documents || []).filter(d => d.userId === req.userId);
+
+    // Ensure counts are always numbers, never undefined
+    const clientCount = clients ? clients.length : 0;
+    const productCount = products ? products.length : 0;
+    const documentCount = documents ? documents.length : 0;
 
     res.json({
       user: {
@@ -100,8 +128,9 @@ router.get('/profile', authenticateToken, async (req, res) => {
         lastLogin: user.lastLogin
       },
       stats: {
-        clientCount: clients.length,
-        productCount: products.length
+        clientCount: clientCount,
+        productCount: productCount,
+        documentCount: documentCount
       }
     });
   } catch (error) {

@@ -1,27 +1,57 @@
 import express from 'express';
-import { getProducts, saveProducts } from '../utils/storage.js';
+import { getProducts, saveProducts, readData } from '../utils/storage.js';
 import { calculateFinalPrice } from '../utils/calculations.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 export const productsRouter = express.Router();
 
-// Get all products
-productsRouter.get('/', async (req, res) => {
+// Helper to check if user is admin
+const isAdmin = async (userId) => {
+  try {
+    const data = await readData();
+    const users = data.users || [];
+    const user = users.find(u => u.id === userId);
+    return user && user.role === 'admin';
+  } catch {
+    return false;
+  }
+};
+
+// Get all products (filtered by userId unless admin)
+productsRouter.get('/', authenticateToken, async (req, res) => {
   try {
     const products = await getProducts();
-    res.json(products);
+    const admin = await isAdmin(req.userId);
+    
+    // Admin sees all products, regular users see ONLY their own (strict filtering)
+    const filteredProducts = admin 
+      ? products 
+      : products.filter(p => p.userId === req.userId); // STRICT: Only items with matching userId
+    
+    res.json(filteredProducts);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // Get single product
-productsRouter.get('/:id', async (req, res) => {
+productsRouter.get('/:id', authenticateToken, async (req, res) => {
   try {
     const products = await getProducts();
     const product = products.find(p => p.id === req.params.id);
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
+    
+    // Check if user has access (admin or owner) - STRICT
+    const admin = await isAdmin(req.userId);
+    if (!admin) {
+      // Regular users can only access their own products
+      if (!product.userId || product.userId !== req.userId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
+    
     res.json(product);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -29,7 +59,7 @@ productsRouter.get('/:id', async (req, res) => {
 });
 
 // Create product
-productsRouter.post('/', async (req, res) => {
+productsRouter.post('/', authenticateToken, async (req, res) => {
   try {
     console.log('\n=== CREATE PRODUCT REQUEST ===');
     console.log('Received product data:', JSON.stringify(req.body, null, 2));
@@ -55,6 +85,7 @@ productsRouter.post('/', async (req, res) => {
     
     const newProduct = {
       id: Date.now().toString(),
+      userId: req.userId, // Assign to current user
       nameEn: String(req.body.nameEn || req.body.name || '').trim(),
       nameHe: String(req.body.nameHe || '').trim(),
       code: String(req.body.code).trim(),
@@ -87,19 +118,30 @@ productsRouter.post('/', async (req, res) => {
 });
 
 // Update product
-productsRouter.put('/:id', async (req, res) => {
+productsRouter.put('/:id', authenticateToken, async (req, res) => {
   try {
     const products = await getProducts();
     const index = products.findIndex(p => p.id === req.params.id);
     if (index === -1) {
       return res.status(404).json({ error: 'Product not found' });
     }
+    
+    // Check if user has access (admin or owner) - STRICT
+    const admin = await isAdmin(req.userId);
+    if (!admin) {
+      // Regular users can only update their own products
+      if (!products[index].userId || products[index].userId !== req.userId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
+    
     products[index] = {
       ...products[index],
       ...req.body,
       id: req.params.id,
       price: parseFloat(req.body.price),
       discount: parseFloat(req.body.discount) || 0,
+      userId: admin ? (req.body.userId || products[index].userId) : req.userId, // Admin can change, user cannot
     };
     await saveProducts(products);
     res.json(products[index]);
@@ -109,24 +151,41 @@ productsRouter.put('/:id', async (req, res) => {
 });
 
 // Delete product
-productsRouter.delete('/:id', async (req, res) => {
+productsRouter.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const products = await getProducts();
+    const product = products.find(p => p.id === req.params.id);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    // Check if user has access (admin or owner) - STRICT
+    const admin = await isAdmin(req.userId);
+    if (!admin) {
+      // Regular users can only delete their own products
+      if (!product.userId || product.userId !== req.userId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
+    
+    // Admin can delete any product, regular users can only delete their own
     const filtered = products.filter(p => p.id !== req.params.id);
     await saveProducts(filtered);
-    res.json({ success: true });
+    res.json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error deleting product:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete product' });
   }
 });
 
 // Bulk import products
-productsRouter.post('/bulk', async (req, res) => {
+productsRouter.post('/bulk', authenticateToken, async (req, res) => {
   try {
     const { products: newProducts } = req.body;
     const existingProducts = await getProducts();
     const imported = newProducts.map(p => ({
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      userId: req.userId, // Assign to current user
       nameEn: p.nameEn || p.name || '',
       nameHe: p.nameHe || '',
       code: p.code,

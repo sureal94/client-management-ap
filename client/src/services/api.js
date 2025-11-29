@@ -1,5 +1,29 @@
 const API_BASE_URL = '/api';
 
+// Helper to get auth token (checks for adminToken first if in admin mode)
+const getAuthToken = () => {
+  // Check if we're in admin mode
+  const isAdminMode = window.location.pathname.startsWith('/admin');
+  if (isAdminMode) {
+    const adminToken = localStorage.getItem('adminToken');
+    if (adminToken) return adminToken;
+  }
+  return localStorage.getItem('token');
+};
+
+// Helper to get headers with auth token
+const getHeaders = (includeContentType = true) => {
+  const headers = {};
+  if (includeContentType) {
+    headers['Content-Type'] = 'application/json';
+  }
+  const token = getAuthToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+};
+
 const handleResponse = async (response) => {
   if (!response.ok) {
     let errorMessage = 'An error occurred';
@@ -12,6 +36,12 @@ const handleResponse = async (response) => {
         errorMessage = 'Backend server is not running. Please start the server on port 5000.';
       } else if (response.status === 404) {
         errorMessage = 'API endpoint not found. Make sure the backend server is running.';
+      } else if (response.status === 401) {
+        errorMessage = 'Authentication required. Please log in again.';
+        // Clear token and redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
       } else {
         errorMessage = `Request failed with status ${response.status}`;
       }
@@ -22,13 +52,15 @@ const handleResponse = async (response) => {
 };
 
 export const fetchProducts = () => {
-  return fetch(`${API_BASE_URL}/products`).then(handleResponse);
+  return fetch(`${API_BASE_URL}/products`, {
+    headers: getHeaders(false)
+  }).then(handleResponse);
 };
 
 export const createProduct = (product) => {
   return fetch(`${API_BASE_URL}/products`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify(product),
   }).then(handleResponse);
 };
@@ -44,17 +76,20 @@ export const updateProduct = (id, product) => {
 export const deleteProduct = (id) => {
   return fetch(`${API_BASE_URL}/products/${id}`, {
     method: 'DELETE',
+    headers: getHeaders(false) // Include auth token
   }).then(handleResponse);
 };
 
 export const fetchClients = () => {
-  return fetch(`${API_BASE_URL}/clients`).then(handleResponse);
+  return fetch(`${API_BASE_URL}/clients`, {
+    headers: getHeaders(false)
+  }).then(handleResponse);
 };
 
 export const createClient = (client) => {
   return fetch(`${API_BASE_URL}/clients`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify(client),
   }).then(handleResponse);
 };
@@ -62,7 +97,7 @@ export const createClient = (client) => {
 export const updateClient = (id, client) => {
   return fetch(`${API_BASE_URL}/clients/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify(client),
   }).then(handleResponse);
 };
@@ -70,6 +105,7 @@ export const updateClient = (id, client) => {
 export const deleteClient = (id) => {
   return fetch(`${API_BASE_URL}/clients/${id}`, {
     method: 'DELETE',
+    headers: getHeaders(false)
   }).then(handleResponse);
 };
 
@@ -103,7 +139,7 @@ export const uploadXLSX = (file) => {
 export const bulkImportProducts = (products) => {
   return fetch(`${API_BASE_URL}/products/bulk`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify({ products }),
   }).then(handleResponse);
 };
@@ -111,22 +147,28 @@ export const bulkImportProducts = (products) => {
 export const bulkImportClients = (clients) => {
   return fetch(`${API_BASE_URL}/clients/bulk`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify({ clients }),
   }).then(handleResponse);
 };
 
 // Document API functions
 export const fetchAllDocuments = () => {
-  return fetch(`${API_BASE_URL}/documents`).then(handleResponse);
+  return fetch(`${API_BASE_URL}/documents`, {
+    headers: getHeaders(false)
+  }).then(handleResponse);
 };
 
 export const fetchClientDocuments = (clientId) => {
-  return fetch(`${API_BASE_URL}/documents/client/${clientId}`).then(handleResponse);
+  return fetch(`${API_BASE_URL}/documents/client/${clientId}`, {
+    headers: getHeaders(false)
+  }).then(handleResponse);
 };
 
 export const fetchPersonalDocuments = () => {
-  return fetch(`${API_BASE_URL}/documents/personal`).then(handleResponse);
+  return fetch(`${API_BASE_URL}/documents/personal`, {
+    headers: getHeaders(false)
+  }).then(handleResponse);
 };
 
 export const uploadClientDocument = (clientId, file) => {
@@ -134,8 +176,16 @@ export const uploadClientDocument = (clientId, file) => {
   // Append file with explicit filename to ensure UTF-8 encoding
   // The browser will automatically encode the filename in the Content-Disposition header
   formData.append('file', file, file.name);
+  
+  const headers = {};
+  const token = getAuthToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   return fetch(`${API_BASE_URL}/documents/client/${clientId}`, {
     method: 'POST',
+    headers: headers,
     body: formData,
     // Don't set Content-Type header - let browser set it with boundary for multipart/form-data
   }).then(handleResponse);
@@ -146,8 +196,15 @@ export const uploadPersonalDocument = (file) => {
   // Append file with explicit filename to ensure UTF-8 encoding
   formData.append('file', file, file.name);
   
+  const headers = {};
+  const token = getAuthToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   return fetch(`${API_BASE_URL}/documents/personal`, {
     method: 'POST',
+    headers: headers,
     body: formData,
     // Don't set Content-Type header - let browser set it with boundary for multipart/form-data
   })
@@ -166,6 +223,7 @@ export const uploadPersonalDocument = (file) => {
 export const deleteDocument = (id) => {
   return fetch(`${API_BASE_URL}/documents/${id}`, {
     method: 'DELETE',
+    headers: getHeaders(false)
   }).then(handleResponse);
 };
 
@@ -174,10 +232,22 @@ export const getDocumentDownloadUrl = (id) => {
 };
 
 // User/Profile API functions
-export const getUserProfile = (token) => {
-  return fetch(`${API_BASE_URL}/users/profile`, {
+export const getAllUsers = (token) => {
+  return fetch(`${API_BASE_URL}/users`, {
     headers: {
       'Authorization': `Bearer ${token}`,
+    },
+  }).then(handleResponse);
+};
+
+export const getUserProfile = (token) => {
+  // Add cache-busting to ensure fresh data on each request
+  return fetch(`${API_BASE_URL}/users/profile?t=${Date.now()}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     },
   }).then(handleResponse);
 };
@@ -234,6 +304,119 @@ export const deleteUserProfile = (token) => {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
+  }).then(handleResponse);
+};
+
+// Admin API functions
+export const adminLogin = (email, password) => {
+  return fetch(`${API_BASE_URL}/admin/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  }).then(handleResponse);
+};
+
+export const adminChangePassword = (token, currentPassword, newPassword) => {
+  return fetch(`${API_BASE_URL}/admin/change-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  }).then(handleResponse);
+};
+
+export const getAdminDashboard = (token) => {
+  return fetch(`${API_BASE_URL}/admin/dashboard`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  }).then(handleResponse);
+};
+
+export const getAdminUsers = (token) => {
+  return fetch(`${API_BASE_URL}/admin/users`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  }).then(handleResponse);
+};
+
+export const resetUserPassword = (token, userId, newPassword) => {
+  return fetch(`${API_BASE_URL}/admin/users/${userId}/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ newPassword }),
+  }).then(handleResponse);
+};
+
+export const adminUpdateUserEmail = (token, userId, email) => {
+  return fetch(`${API_BASE_URL}/admin/users/${userId}/email`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ email }),
+  }).then(handleResponse);
+};
+
+export const toggleUserStatus = (token, userId, isActive) => {
+  return fetch(`${API_BASE_URL}/admin/users/${userId}/status`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ isActive }),
+  }).then(handleResponse);
+};
+
+export const deleteUser = (token, userId) => {
+  return fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  }).then(handleResponse);
+};
+
+export const assignClientToUser = (token, clientId, userId) => {
+  return fetch(`${API_BASE_URL}/admin/clients/${clientId}/assign`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ userId }),
+  }).then(handleResponse);
+};
+
+export const assignProductToUser = (token, productId, userId) => {
+  return fetch(`${API_BASE_URL}/admin/products/${productId}/assign`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ userId }),
+  }).then(handleResponse);
+};
+
+export const assignDocumentToUser = (token, documentId, userId) => {
+  return fetch(`${API_BASE_URL}/admin/documents/${documentId}/assign`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ userId }),
   }).then(handleResponse);
 };
 

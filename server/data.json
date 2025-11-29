@@ -10,15 +10,6 @@
       "discountType": "percent"
     },
     {
-      "id": "1764261515444625tj3rna",
-      "nameEn": "לוח גבס עמיד מים 260/120/12.5",
-      "nameHe": "",
-      "code": "262120",
-      "price": 154.13,
-      "discount": 67.3,
-      "discountType": "percent"
-    },
-    {
       "id": "1764261515444murxetzdo",
       "nameEn": "לוח גבס חסין אש 260/120/12.5",
       "nameHe": "",
@@ -415,30 +406,12 @@
       "discountType": "percent"
     },
     {
-      "id": "17642615154448yyd7kjo3",
-      "nameEn": "אקווניר לבן 16 ל' ‏WHITE‏ ‏EXTRA‏",
-      "nameHe": "",
-      "code": "1510423",
-      "price": 265,
-      "discount": 18,
-      "discountType": "percent"
-    },
-    {
       "id": "1764261515444kq9jjoera",
       "nameEn": "אקווניר 16 ל' EXTRA ב. ‏A‏",
       "nameHe": "",
       "code": "AE18A",
       "price": 274.5,
       "discount": 15,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154440cpkpqxuj",
-      "nameEn": "היפרסיד 18 ל' - נירלט",
-      "nameHe": "",
-      "code": "50190",
-      "price": 116.1,
-      "discount": 27,
       "discountType": "percent"
     }
   ],
@@ -522,7 +495,10 @@
       "status": "Active",
       "notes": "",
       "productIds": [],
-      "lastContacted": "2025-11-26"
+      "lastContacted": "2025-11-26",
+      "pc": "Active",
+      "comments": [],
+      "reminders": []
     },
     {
       "id": "17641840876255112kocq2",
@@ -617,15 +593,6 @@
   ],
   "documents": [
     {
-      "id": "1764266632494",
-      "clientId": "1764174398500",
-      "originalName": "IMG-20251124-WA0020.jpg",
-      "fileName": "1764266632480-IMG-20251124-WA0020.jpg",
-      "mimeType": "image/jpeg",
-      "size": 13237,
-      "uploadedAt": "2025-11-27T18:03:52.494Z"
-    },
-    {
       "id": "1764266841534",
       "clientId": "1764175239383",
       "originalName": "deal_zee_logo_black.jpg",
@@ -660,9 +627,48 @@
       "password": "$2b$10$oatuwlQ.8.vnj8QcAZWcHOsWFKFLTi7xon/UhL56XlqTi/IEXN3Je",
       "fullName": "Sureal Crowder",
       "createdAt": "2025-11-28T21:11:29.652Z",
-      "lastLogin": "2025-11-29T15:52:47.735Z",
+      "lastLogin": "2025-11-29T21:03:36.064Z",
       "phone": null,
       "profilePicture": "/api/users/profile-pictures/profile-1764364289652nv9m0nbm1-1764365700369.jpg",
+      "darkMode": false,
+      "lastActive": "2025-11-29T21:14:19.243Z",
+      "isOnline": false
+    },
+    {
+      "id": "admin-1764439047048",
+      "email": "admin",
+      "password": "$2b$10$qiHkRlEHI9RG9w8rnDyRkO2iGIQDz4XfOlmvjF6.oRBJhEb4o8O9S",
+      "fullName": "Administrator",
+      "role": "admin",
+      "createdAt": "2025-11-29T17:57:27.048Z",
+      "lastLogin": "2025-11-29T21:13:18.112Z",
+      "phone": null,
+      "profilePicture": null,
+      "darkMode": false,
+      "mustChangePassword": false,
+      "lastActive": "2025-11-29T21:14:31.005Z",
+      "isOnline": true
+    },
+    {
+      "id": "1764447182234wij7xlk91",
+      "email": "depositmaster100@gmail.com",
+      "password": "$2b$10$iW2FCPlqS9nZQJJ1eKuNsuhIrV8YzvfEjbiy59/uQ4fnO/FwTZjji",
+      "fullName": "David Brown",
+      "createdAt": "2025-11-29T20:13:02.234Z",
+      "lastLogin": null,
+      "phone": null,
+      "profilePicture": null,
+      "darkMode": false
+    },
+    {
+      "id": "1764449054749xdoon9fmo",
+      "email": "sureal528@gmail.com",
+      "password": "$2b$10$1sJv6lkPMcMQGq0qoVQGJuSr6oMM39Ky/IsLAZFlbuwmJR17oV2Na",
+      "fullName": "Boss Mann",
+      "createdAt": "2025-11-29T20:44:14.749Z",
+      "lastLogin": null,
+      "phone": null,
+      "profilePicture": null,
       "darkMode": false
     }
   ]

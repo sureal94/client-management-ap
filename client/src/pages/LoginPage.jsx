@@ -235,7 +235,13 @@ const LoginPage = () => {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-2">
+          <button
+            onClick={() => navigate('/admin/login')}
+            className="text-sm text-primary hover:underline font-medium"
+          >
+            {t('adminLogin') || 'Admin Login'}
+          </button>
           <p className="text-sm text-gray-600">
             {isSignUp ? (
               <>

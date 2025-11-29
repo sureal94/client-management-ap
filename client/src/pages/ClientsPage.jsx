@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nContext';
-import { Plus, Phone, Mail, Search, Download, ChevronRight } from 'lucide-react';
-import { fetchClients, createClient, updateClient, deleteClient, fetchProducts } from '../services/api';
+import { Plus, Phone, Mail, Search, Download, ChevronRight, UserPlus } from 'lucide-react';
+import { fetchClients, createClient, updateClient, deleteClient, fetchProducts, assignClientToUser } from '../services/api';
 import ClientModal from '../components/ClientModal';
+import AssignToUserModal from '../components/AssignToUserModal';
 import Fuse from 'fuse.js';
 import * as XLSX from 'xlsx';
 
@@ -21,6 +22,11 @@ const ClientsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedClientForAssign, setSelectedClientForAssign] = useState(null);
+  
+  // Check if we're in admin mode
+  const isAdmin = window.location.pathname.startsWith('/admin');
 
   useEffect(() => {
     loadData();
@@ -33,21 +39,26 @@ const ClientsPage = () => {
         fetchClients(),
         fetchProducts(),
       ]);
-      setClients(clientsData);
-      setProducts(productsData);
+      setClients(clientsData || []);
+      setProducts(productsData || []);
     } catch (error) {
       console.error('Error loading data:', error);
+      // Set empty arrays on error to prevent crashes
+      setClients([]);
+      setProducts([]);
+      alert('Failed to load clients. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const fuse = new Fuse(clients, {
+  // Initialize Fuse only when clients array is available and not empty
+  const fuse = clients && clients.length > 0 ? new Fuse(clients, {
     keys: ['name', 'email', 'phone'],
     threshold: 0.3,
-  });
+  }) : null;
 
-  const filteredClients = searchTerm
+  const filteredClients = searchTerm && fuse
     ? fuse.search(searchTerm).map(item => item.item)
     : clients;
 
@@ -78,14 +89,39 @@ const ClientsPage = () => {
     }
   };
 
+  const handleAssignClient = async (userId) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        alert('Admin token not found. Please log in again.');
+        return;
+      }
+      await assignClientToUser(token, selectedClientForAssign.id, userId);
+      alert(t('clientAssignedSuccess') || 'Client assigned successfully');
+      loadData();
+    } catch (error) {
+      console.error('Error assigning client:', error);
+      alert('Failed to assign client: ' + (error.message || 'Unknown error'));
+    }
+  };
+
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this client?')) {
+    const clientName = clients.find(c => c.id === id)?.name || 'this client';
+    const confirmMessage = isAdmin 
+      ? `Are you sure you want to delete "${clientName}"? This action cannot be undone.`
+      : `Are you sure you want to delete "${clientName}"?`;
+    
+    if (window.confirm(confirmMessage)) {
       try {
         await deleteClient(id);
+        // Remove from state immediately
         setClients(clients.filter(c => c.id !== id));
+        // Show success message
+        alert(isAdmin ? `Client "${clientName}" deleted successfully.` : 'Client deleted successfully.');
       } catch (error) {
         console.error('Error deleting client:', error);
-        alert('Failed to delete client');
+        const errorMessage = error.message || 'Failed to delete client';
+        alert(`Failed to delete client: ${errorMessage}`);
       }
     }
   };
@@ -117,10 +153,15 @@ const ClientsPage = () => {
   };
 
   const handleExport = (format) => {
+    if (!filteredClients || filteredClients.length === 0) {
+      alert(t('noClientsToExport') || 'No clients to export');
+      return;
+    }
+
     const data = filteredClients.map(c => ({
-      [t('clientName')]: c.name,
-      [t('phone')]: c.phone,
-      [t('email')]: c.email,
+      [t('clientName')]: c.name || '',
+      [t('phone')]: c.phone || '',
+      [t('email')]: c.email || '',
       [t('pc')]: c.pc || '',
       [t('lastContacted')]: c.lastContacted || '',
       [t('notes')]: c.notes || '',
@@ -270,6 +311,19 @@ const ClientsPage = () => {
                           <Mail className="w-5 h-5" />
                         </button>
                       )}
+                      {isAdmin && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedClientForAssign(client);
+                            setAssignModalOpen(true);
+                          }}
+                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+                          title={t('assignToUser') || 'Assign to User'}
+                        >
+                          <UserPlus className="w-5 h-5" />
+                        </button>
+                      )}
                     </div>
                     <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
                   </div>
@@ -394,6 +448,20 @@ const ClientsPage = () => {
             setIsModalOpen(false);
             setEditingClient(null);
           }}
+        />
+      )}
+
+      {/* Assign to User Modal (Admin only) */}
+      {isAdmin && (
+        <AssignToUserModal
+          isOpen={assignModalOpen}
+          onClose={() => {
+            setAssignModalOpen(false);
+            setSelectedClientForAssign(null);
+          }}
+          onAssign={handleAssignClient}
+          title={t('assignClientToUser') || 'Assign Client to User'}
+          itemName={selectedClientForAssign?.name}
         />
       )}
     </div>
