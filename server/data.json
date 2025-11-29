@@ -651,24 +651,6 @@
       "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "size": 13433,
       "uploadedAt": "2025-11-28T15:45:11.097Z"
-    },
-    {
-      "id": "1764430506603",
-      "clientId": null,
-      "originalName": "בדיקת קובץ משימות יומי.xlsx",
-      "fileName": "1764430506588-בדיקת קובץ משימות יומי.xlsx",
-      "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "size": 17759,
-      "uploadedAt": "2025-11-29T15:35:06.603Z"
-    },
-    {
-      "id": "1764430949212",
-      "clientId": null,
-      "originalName": "client_list.xlsx",
-      "fileName": "1764430949204-client_list.xlsx",
-      "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "size": 5281,
-      "uploadedAt": "2025-11-29T15:42:29.212Z"
     }
   ],
   "users": [
