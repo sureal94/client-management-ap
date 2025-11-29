@@ -182,3 +182,4 @@ If after following all steps you still see the old app:
 3. **Restart computer** (last resort - clears all caches)
 
 
+

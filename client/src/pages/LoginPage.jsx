@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../i18n/I18nContext';
-import { LogIn, UserPlus, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { LogIn, UserPlus, Mail, Lock, Eye, EyeOff, Globe } from 'lucide-react';
 
 const LoginPage = () => {
-  const { t } = useI18n();
+  const { t, language, toggleLanguage } = useI18n();
   const navigate = useNavigate();
   const { login, register } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
@@ -15,6 +15,24 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+
+  const languages = [
+    { code: 'en', name: t('english') || 'English', nativeName: 'English' },
+    { code: 'he', name: t('hebrew') || 'Hebrew', nativeName: 'עברית' }
+  ];
+
+  const handleLanguageChange = (langCode) => {
+    if (langCode !== language) {
+      // If switching to a different language, toggle it
+      if (language === 'en' && langCode === 'he') {
+        toggleLanguage();
+      } else if (language === 'he' && langCode === 'en') {
+        toggleLanguage();
+      }
+    }
+    setIsLanguageDropdownOpen(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,7 +59,65 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12 relative">
+      {/* Language Switcher Dropdown - Top Right */}
+      <div className="fixed top-4 right-4 md:top-6 md:right-6 z-[100]">
+        <button
+          onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+          className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-gray-300 hover:border-primary group"
+          title={t('switchLanguage') || 'Switch Language'}
+          aria-label={t('switchLanguage') || 'Switch Language'}
+          aria-expanded={isLanguageDropdownOpen}
+        >
+          <Globe className="w-5 h-5 text-gray-700 group-hover:text-primary transition-colors" />
+          <span className="text-sm font-semibold text-gray-800 group-hover:text-primary transition-colors">
+            {language === 'en' ? 'English' : 'עברית'}
+          </span>
+          <svg
+            className={`w-4 h-4 text-gray-700 transition-transform duration-200 ${isLanguageDropdownOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* Dropdown Menu */}
+        {isLanguageDropdownOpen && (
+          <>
+            {/* Backdrop to close dropdown on outside click */}
+            <div
+              className="fixed inset-0 z-[90]"
+              onClick={() => setIsLanguageDropdownOpen(false)}
+            />
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border-2 border-gray-200 py-2 z-[100]">
+              {languages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => handleLanguageChange(lang.code)}
+                  className={`w-full flex items-center justify-between px-4 py-2 text-sm transition-colors ${
+                    language === lang.code
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{lang.nativeName}</span>
+                    <span className="text-xs text-gray-500">({lang.name})</span>
+                  </div>
+                  {language === lang.code && (
+                    <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary mb-2">
@@ -196,4 +272,5 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
 

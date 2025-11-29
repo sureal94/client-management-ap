@@ -36,6 +36,9 @@ export const translations = {
     editClient: "Edit Client",
     deleteClient: "Delete Client",
     searchClients: "Search clients...",
+    searchDocuments: "Search documents...",
+    noDocumentsFound: "No documents found matching your search.",
+    clear: "Clear",
     noClients: "No clients found",
     call: "Call",
     whatsapp: "WhatsApp",
@@ -156,6 +159,7 @@ export const translations = {
     language: "Language",
     english: "English",
     hebrew: "Hebrew",
+    switchLanguage: "Switch Language",
     
     // Auth
     login: "Login",
@@ -324,6 +328,9 @@ export const translations = {
     close: "סגור",
     deleteDocument: "מחק מסמך",
     noDocuments: "אין מסמכים עדיין",
+    searchDocuments: "חפש מסמכים...",
+    noDocumentsFound: "לא נמצאו מסמכים התואמים לחיפוש שלך.",
+    clear: "נקה",
     clientDocuments: "מסמכי לקוח",
     personalDocuments: "מסמכים אישיים",
     clientsWithDocuments: "לקוחות עם מסמכים",
@@ -388,6 +395,7 @@ export const translations = {
     language: "שפה",
     english: "אנגלית",
     hebrew: "עברית",
+    switchLanguage: "החלף שפה",
     
     // Auth
     login: "התחברות",

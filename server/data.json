@@ -651,6 +651,15 @@
       "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "size": 13433,
       "uploadedAt": "2025-11-28T15:45:11.097Z"
+    },
+    {
+      "id": "1764430506603",
+      "clientId": null,
+      "originalName": "בדיקת קובץ משימות יומי.xlsx",
+      "fileName": "1764430506588-בדיקת קובץ משימות יומי.xlsx",
+      "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "size": 17759,
+      "uploadedAt": "2025-11-29T15:35:06.603Z"
     }
   ],
   "users": [
@@ -660,7 +669,7 @@
       "password": "$2b$10$oatuwlQ.8.vnj8QcAZWcHOsWFKFLTi7xon/UhL56XlqTi/IEXN3Je",
       "fullName": "Sureal Crowder",
       "createdAt": "2025-11-28T21:11:29.652Z",
-      "lastLogin": "2025-11-28T21:41:52.109Z",
+      "lastLogin": "2025-11-29T15:26:19.363Z",
       "phone": null,
       "profilePicture": "/api/users/profile-pictures/profile-1764364289652nv9m0nbm1-1764365700369.jpg",
       "darkMode": false

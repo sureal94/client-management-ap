@@ -10,7 +10,9 @@ import {
   User,
   FolderOpen,
   Clock,
-  Eye
+  Eye,
+  Search,
+  X
 } from 'lucide-react';
 import {
   fetchClients,
@@ -35,6 +37,8 @@ const DocumentsPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [previewDocument, setPreviewDocument] = useState(null);
+  const [clientSearchTerm, setClientSearchTerm] = useState('');
+  const [documentSearchTerm, setDocumentSearchTerm] = useState('');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -119,6 +123,7 @@ const DocumentsPage = () => {
 
   if (loading) return <div className="flex items-center justify-center h-64">Loading...</div>;
 
+  // Filter clients by search term (case-insensitive)
   const clientsWithDocs = clients
     .map((c) => {
       const docs = allDocuments.filter((d) => d.clientId === c.id);
@@ -132,7 +137,18 @@ const DocumentsPage = () => {
         )
       };
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((client) => {
+      if (!clientSearchTerm.trim()) return true;
+      return client.name.toLowerCase().includes(clientSearchTerm.toLowerCase());
+    });
+
+  // Filter personal documents by search term (case-insensitive)
+  const filteredPersonalDocuments = personalDocuments.filter((doc) => {
+    if (!documentSearchTerm.trim()) return true;
+    const docName = doc.originalName || 'Unknown file';
+    return docName.toLowerCase().includes(documentSearchTerm.toLowerCase());
+  });
 
   if (selectedClient) {
     return (
@@ -192,13 +208,19 @@ const DocumentsPage = () => {
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button
-          onClick={() => setActiveTab('clients')}
+          onClick={() => {
+            setActiveTab('clients');
+            setDocumentSearchTerm(''); // Clear personal documents search when switching
+          }}
           className={`px-4 py-2 rounded-lg ${activeTab === 'clients' ? 'bg-primary text-white' : 'bg-gray-100'}`}
         >
           Clients
         </button>
         <button
-          onClick={() => setActiveTab('personal')}
+          onClick={() => {
+            setActiveTab('personal');
+            setClientSearchTerm(''); // Clear clients search when switching
+          }}
           className={`px-4 py-2 rounded-lg ${activeTab === 'personal' ? 'bg-primary text-white' : 'bg-gray-100'}`}
         >
           My Documents
@@ -208,10 +230,37 @@ const DocumentsPage = () => {
       {/* Clients Tab */}
       {activeTab === 'clients' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          {/* Search Bar for Clients */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 rtl:right-3 rtl:left-auto" />
+              <input
+                type="text"
+                placeholder={t('searchClients') || 'Search clients...'}
+                value={clientSearchTerm}
+                onChange={(e) => setClientSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent rtl:pr-10 rtl:pl-4 text-base"
+              />
+              {clientSearchTerm && (
+                <button
+                  onClick={() => setClientSearchTerm('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 rtl:left-3 rtl:right-auto"
+                  title={t('clear') || 'Clear'}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+          </div>
+
           {clientsWithDocs.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>{t('noDocuments') || 'No documents yet'}</p>
+              <p>
+                {clientSearchTerm
+                  ? (t('noDocumentsFound') || 'No documents found matching your search.')
+                  : (t('noDocuments') || 'No documents yet')}
+              </p>
             </div>
           ) : (
             <table className="w-full">
@@ -278,14 +327,41 @@ const DocumentsPage = () => {
             </button>
           </div>
 
+          {/* Search Bar for Personal Documents */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 rtl:right-3 rtl:left-auto" />
+              <input
+                type="text"
+                placeholder={t('searchDocuments') || 'Search documents...'}
+                value={documentSearchTerm}
+                onChange={(e) => setDocumentSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent rtl:pr-10 rtl:pl-4 text-base"
+              />
+              {documentSearchTerm && (
+                <button
+                  onClick={() => setDocumentSearchTerm('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 rtl:left-3 rtl:right-auto"
+                  title={t('clear') || 'Clear'}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="mt-6 space-y-2">
-            {personalDocuments.length === 0 ? (
+            {filteredPersonalDocuments.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>{t('noDocuments') || 'No documents yet'}</p>
+                <p>
+                  {documentSearchTerm
+                    ? (t('noDocumentsFound') || 'No documents found matching your search.')
+                    : (t('noDocuments') || 'No documents yet')}
+                </p>
               </div>
             ) : (
-              personalDocuments.map((doc) => (
+              filteredPersonalDocuments.map((doc) => (
                 <div
                   key={doc.id}
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border"
