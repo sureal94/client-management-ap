@@ -205,7 +205,7 @@ const LoginPage = () => {
           </div>
 
           {!isSignUp && (
-            <div className="flex justify-end">
+            <div className="flex justify-center">
               <button
                 type="button"
                 onClick={() => navigate('/forgot-password')}
