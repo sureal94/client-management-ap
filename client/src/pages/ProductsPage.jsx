@@ -1,14 +1,26 @@
 import { useState, useEffect } from 'react';
 import ProductTable from '../components/ProductTable';
-import { fetchProducts, createProduct, updateProduct, deleteProduct, bulkDeleteProducts } from '../services/api';
+import { fetchProducts, createProduct, updateProduct, deleteProduct, bulkDeleteProducts, assignProductToUser, getAdminUsers } from '../services/api';
+import AssignToUserModal from '../components/AssignToUserModal';
+import { useI18n } from '../i18n/I18nContext';
 
 const ProductsPage = () => {
+  const { t } = useI18n();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedProductForAssign, setSelectedProductForAssign] = useState(null);
+  const [usersMap, setUsersMap] = useState(new Map());
+  
+  // Check if we're in admin mode
+  const isAdmin = window.location.pathname.startsWith('/admin');
 
   useEffect(() => {
     loadProducts();
-  }, []);
+    if (isAdmin) {
+      loadUsers();
+    }
+  }, [isAdmin]);
 
   const loadProducts = async () => {
     try {
@@ -102,18 +114,73 @@ const ProductsPage = () => {
     }
   };
 
+  const loadUsers = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+      const usersData = await getAdminUsers(token);
+      // Create a map for quick lookup: userId -> fullName
+      const map = new Map();
+      usersData.forEach(user => {
+        map.set(user.id, user.fullName || user.email || 'Unknown User');
+      });
+      setUsersMap(map);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
+
+  const handleAssignProduct = async (userId) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        alert('Admin token not found. Please log in again.');
+        return;
+      }
+      await assignProductToUser(token, selectedProductForAssign.id, userId);
+      alert(t('productAssignedSuccess') || 'Product assigned successfully');
+      // Reload data to get updated userId
+      await loadProducts();
+      // Reload users to ensure we have the latest user info
+      await loadUsers();
+    } catch (error) {
+      console.error('Error assigning product:', error);
+      alert('Failed to assign product: ' + (error.message || 'Unknown error'));
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
   }
 
   return (
-    <ProductTable
-      products={products}
-      onAdd={handleAdd}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      onBulkDelete={handleBulkDelete}
-    />
+    <>
+      <ProductTable
+        products={products}
+        onAdd={handleAdd}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onBulkDelete={handleBulkDelete}
+        onAssign={isAdmin ? (product) => {
+          setSelectedProductForAssign(product);
+          setAssignModalOpen(true);
+        } : undefined}
+        usersMap={isAdmin ? usersMap : undefined}
+        isAdmin={isAdmin}
+      />
+      {isAdmin && (
+        <AssignToUserModal
+          isOpen={assignModalOpen}
+          onClose={() => {
+            setAssignModalOpen(false);
+            setSelectedProductForAssign(null);
+          }}
+          onAssign={handleAssignProduct}
+          title={t('assignProductToUser') || 'Assign Product to User'}
+          itemName={selectedProductForAssign?.nameEn || selectedProductForAssign?.name}
+        />
+      )}
+    </>
   );
 };
 

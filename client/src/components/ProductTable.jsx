@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nContext';
-import { Edit, Plus, Download, Search, ChevronRight, Trash2 } from 'lucide-react';
+import { Edit, Plus, Download, Search, ChevronRight, Trash2, UserPlus } from 'lucide-react';
 import { calculateFinalPrice } from '../utils/calculations';
 import ProductModal from './ProductModal';
 import Fuse from 'fuse.js';
 import * as XLSX from 'xlsx';
 
-const ProductTable = ({ products, onAdd, onEdit, onDelete, onBulkDelete }) => {
+const ProductTable = ({ products, onAdd, onEdit, onDelete, onBulkDelete, onAssign, usersMap, isAdmin }) => {
   const { t, language } = useI18n();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
@@ -115,6 +115,12 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete, onBulkDelete }) => {
     return language === 'he' 
       ? (product.nameHe || product.nameEn || product.name) 
       : (product.nameEn || product.name);
+  };
+
+  // Helper function to get assigned user name
+  const getAssignedUserName = (product) => {
+    if (!product.userId) return t('unassigned') || 'Unassigned';
+    return usersMap?.get(product.userId) || t('unknownUser') || 'Unknown User';
   };
 
   // Selection handlers
@@ -272,9 +278,32 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete, onBulkDelete }) => {
                             </span>
                           )}
                         </div>
+                        {isAdmin && (
+                          <p className="text-xs mt-1">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              product.userId 
+                                ? 'bg-blue-100 text-blue-700' 
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {t('assignedTo') || 'Assigned To'}: {getAssignedUserName(product)}
+                            </span>
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-2">
+                      {onAssign && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAssign(product);
+                          }}
+                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+                          title={t('assignToUser') || 'Assign to User'}
+                        >
+                          <UserPlus className="w-5 h-5" />
+                        </button>
+                      )}
                       <span className="text-lg font-bold text-primary">
                         ₪{finalPrice.toFixed(2)}
                       </span>
@@ -343,6 +372,11 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete, onBulkDelete }) => {
                   <span>{sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}</span>
                 )}
               </th>
+              {isAdmin && (
+                <th className="px-6 py-3 text-center text-sm font-bold text-black">
+                  {t('assignedTo') || 'Assigned To'}
+                </th>
+              )}
               <th className="px-6 py-3 text-center text-sm font-bold text-black">
                 {t('actions')}
               </th>
@@ -351,7 +385,7 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete, onBulkDelete }) => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={isAdmin ? 8 : 7} className="px-6 py-4 text-center text-gray-500">
                   {t('noProducts')}
                 </td>
               </tr>
@@ -386,13 +420,39 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete, onBulkDelete }) => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                       ₪{finalPrice.toFixed(2)}
                     </td>
+                    {isAdmin && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          product.userId 
+                            ? 'bg-blue-100 text-blue-700' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {getAssignedUserName(product)}
+                        </span>
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="text-primary hover:text-orange-600 p-2"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
+                      <div className="flex gap-2 items-center justify-center">
+                        <button
+                          onClick={() => handleEdit(product)}
+                          className="text-primary hover:text-orange-600 p-2"
+                          title={t('edit') || 'Edit'}
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        {onAssign && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAssign(product);
+                            }}
+                            className="text-purple-600 hover:text-purple-700 p-2"
+                            title={t('assignToUser') || 'Assign to User'}
+                          >
+                            <UserPlus className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

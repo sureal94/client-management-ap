@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import { Plus, Phone, Mail, Search, Download, ChevronRight, UserPlus, Trash2 } from 'lucide-react';
-import { fetchClients, createClient, updateClient, deleteClient, fetchProducts, assignClientToUser, bulkDeleteClients } from '../services/api';
+import { fetchClients, createClient, updateClient, deleteClient, fetchProducts, assignClientToUser, bulkDeleteClients, getAdminUsers } from '../services/api';
 import ClientModal from '../components/ClientModal';
 import AssignToUserModal from '../components/AssignToUserModal';
 import Fuse from 'fuse.js';
@@ -25,13 +25,18 @@ const ClientsPage = () => {
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedClientForAssign, setSelectedClientForAssign] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [users, setUsers] = useState([]);
+  const [usersMap, setUsersMap] = useState(new Map());
   
   // Check if we're in admin mode
   const isAdmin = window.location.pathname.startsWith('/admin');
 
   useEffect(() => {
     loadData();
-  }, []);
+    if (isAdmin) {
+      loadUsers();
+    }
+  }, [isAdmin]);
 
   const loadData = async () => {
     try {
@@ -50,6 +55,23 @@ const ClientsPage = () => {
       alert('Failed to load clients. Please check your connection and try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+      const usersData = await getAdminUsers(token);
+      setUsers(usersData || []);
+      // Create a map for quick lookup: userId -> fullName
+      const map = new Map();
+      usersData.forEach(user => {
+        map.set(user.id, user.fullName || user.email || 'Unknown User');
+      });
+      setUsersMap(map);
+    } catch (error) {
+      console.error('Error loading users:', error);
     }
   };
 
@@ -99,11 +121,20 @@ const ClientsPage = () => {
       }
       await assignClientToUser(token, selectedClientForAssign.id, userId);
       alert(t('clientAssignedSuccess') || 'Client assigned successfully');
-      loadData();
+      // Reload data to get updated userId
+      await loadData();
+      // Reload users to ensure we have the latest user info
+      await loadUsers();
     } catch (error) {
       console.error('Error assigning client:', error);
       alert('Failed to assign client: ' + (error.message || 'Unknown error'));
     }
+  };
+
+  // Helper function to get assigned user name
+  const getAssignedUserName = (client) => {
+    if (!client.userId) return t('unassigned') || 'Unassigned';
+    return usersMap.get(client.userId) || t('unknownUser') || 'Unknown User';
   };
 
   const handleDelete = async (id) => {
@@ -362,6 +393,17 @@ const ClientsPage = () => {
                     {client.email && (
                       <p className="text-sm text-gray-400 truncate">{client.email}</p>
                     )}
+                    {isAdmin && (
+                      <p className="text-xs mt-1">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          client.userId 
+                            ? 'bg-blue-100 text-blue-700' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {t('assignedTo') || 'Assigned To'}: {getAssignedUserName(client)}
+                        </span>
+                      </p>
+                    )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 ml-2">
@@ -458,6 +500,11 @@ const ClientsPage = () => {
               <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {t('lastContacted')}
               </th>
+              {isAdmin && (
+                <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('assignedTo') || 'Assigned To'}
+                </th>
+              )}
               <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {t('actions')}
               </th>
@@ -466,7 +513,7 @@ const ClientsPage = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredClients.length === 0 ? (
               <tr>
-                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={isAdmin ? 8 : 7} className="px-6 py-4 text-center text-gray-500">
                   {t('noClients')}
                 </td>
               </tr>
@@ -505,6 +552,17 @@ const ClientsPage = () => {
                         ? new Date(client.lastContacted).toLocaleDateString()
                         : '-'}
                     </td>
+                    {isAdmin && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          client.userId 
+                            ? 'bg-blue-100 text-blue-700' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {getAssignedUserName(client)}
+                        </span>
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex gap-2 rtl:flex-row-reverse">
                         {client.phone && (
@@ -541,6 +599,19 @@ const ClientsPage = () => {
                             title={t('email')}
                           >
                             <Mail className="w-5 h-5" />
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedClientForAssign(client);
+                              setAssignModalOpen(true);
+                            }}
+                            className="text-purple-600 hover:text-purple-700 p-1"
+                            title={t('assignToUser') || 'Assign to User'}
+                          >
+                            <UserPlus className="w-5 h-5" />
                           </button>
                         )}
                       </div>

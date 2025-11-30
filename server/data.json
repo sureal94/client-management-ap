@@ -45,7 +45,8 @@
           "user": "System (migrated)"
         }
       ],
-      "reminders": []
+      "reminders": [],
+      "userId": "1764447182234wij7xlk91"
     }
   ],
   "documents": [
@@ -84,12 +85,12 @@
       "password": "$2b$10$oatuwlQ.8.vnj8QcAZWcHOsWFKFLTi7xon/UhL56XlqTi/IEXN3Je",
       "fullName": "Sureal Crowder",
       "createdAt": "2025-11-28T21:11:29.652Z",
-      "lastLogin": "2025-11-29T23:35:52.667Z",
+      "lastLogin": "2025-11-30T01:50:41.621Z",
       "phone": null,
       "profilePicture": "/api/users/profile-pictures/profile-1764364289652nv9m0nbm1-1764365700369.jpg",
       "darkMode": false,
-      "lastActive": "2025-11-30T00:00:18.686Z",
-      "isOnline": false
+      "lastActive": "2025-11-30T01:51:53.243Z",
+      "isOnline": true
     },
     {
       "id": "admin-1764439047048",
@@ -98,12 +99,12 @@
       "fullName": "Administrator",
       "role": "admin",
       "createdAt": "2025-11-29T17:57:27.048Z",
-      "lastLogin": "2025-11-30T00:04:35.253Z",
+      "lastLogin": "2025-11-30T01:49:13.918Z",
       "phone": null,
       "profilePicture": null,
       "darkMode": false,
       "mustChangePassword": false,
-      "lastActive": "2025-11-30T00:05:16.438Z",
+      "lastActive": "2025-11-30T01:49:59.126Z",
       "isOnline": true
     },
     {
@@ -112,10 +113,12 @@
       "password": "$2b$10$iW2FCPlqS9nZQJJ1eKuNsuhIrV8YzvfEjbiy59/uQ4fnO/FwTZjji",
       "fullName": "David Brown",
       "createdAt": "2025-11-29T20:13:02.234Z",
-      "lastLogin": null,
+      "lastLogin": "2025-11-30T01:35:16.230Z",
       "phone": null,
       "profilePicture": null,
-      "darkMode": false
+      "darkMode": false,
+      "lastActive": "2025-11-30T01:41:18.896Z",
+      "isOnline": false
     },
     {
       "id": "1764449054749xdoon9fmo",
@@ -134,8 +137,8 @@
       "password": "$2b$10$LbcvTJxSet8N4onvVGfYZeem.9AV3O/xjmQJY3OgwuwmAjbaaY912",
       "fullName": "Sapir",
       "createdAt": "2025-11-30T00:02:08.065Z",
-      "lastLogin": null,
-      "lastActive": "2025-11-30T00:04:14.744Z",
+      "lastLogin": "2025-11-30T01:21:46.356Z",
+      "lastActive": "2025-11-30T01:26:53.300Z",
       "isOnline": false,
       "phone": null,
       "profilePicture": null,

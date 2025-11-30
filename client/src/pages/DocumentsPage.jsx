@@ -12,7 +12,8 @@ import {
   Clock,
   Eye,
   Search,
-  X
+  X,
+  UserPlus
 } from 'lucide-react';
 import {
   fetchClients,
@@ -21,10 +22,12 @@ import {
   fetchPersonalDocuments,
   uploadPersonalDocument,
   deleteDocument,
-  getDocumentDownloadUrl
+  getDocumentDownloadUrl,
+  assignDocumentToUser
 } from '../services/api';
 import { format } from 'date-fns';
 import FilePreview from '../components/FilePreview';
+import AssignToUserModal from '../components/AssignToUserModal';
 
 const DocumentsPage = () => {
   const { t } = useI18n();
@@ -39,6 +42,8 @@ const DocumentsPage = () => {
   const [previewDocument, setPreviewDocument] = useState(null);
   const [clientSearchTerm, setClientSearchTerm] = useState('');
   const [documentSearchTerm, setDocumentSearchTerm] = useState('');
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedDocumentForAssign, setSelectedDocumentForAssign] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -113,6 +118,22 @@ const DocumentsPage = () => {
     }
   };
 
+  const handleAssignDocument = async (userId) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        alert('Admin token not found. Please log in again.');
+        return;
+      }
+      await assignDocumentToUser(token, selectedDocumentForAssign.id, userId);
+      alert(t('documentAssignedSuccess') || 'Document assigned successfully');
+      loadData();
+    } catch (error) {
+      console.error('Error assigning document:', error);
+      alert('Failed to assign document: ' + (error.message || 'Unknown error'));
+    }
+  };
+
   const formatFileSize = (bytes) => {
     if (!bytes || bytes === 0) return '0 B';
     if (typeof bytes !== 'number') return 'Unknown';
@@ -179,6 +200,18 @@ const DocumentsPage = () => {
                 <a href={getDocumentDownloadUrl(doc.id)} download={doc.originalName} className="p-2 text-blue-600 hover:text-blue-700" title="Download">
                   <Download />
                 </a>
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      setSelectedDocumentForAssign(doc);
+                      setAssignModalOpen(true);
+                    }}
+                    className="p-2 text-purple-600 hover:text-purple-700"
+                    title={t('assignToUser') || 'Assign to User'}
+                  >
+                    <UserPlus />
+                  </button>
+                )}
                 <button onClick={() => handleDeleteDocument(doc.id)} className="p-2 text-red-600 hover:text-red-700" title="Delete">
                   <Trash2 />
                 </button>
@@ -404,6 +437,18 @@ const DocumentsPage = () => {
                     <a href={getDocumentDownloadUrl(doc.id)} download={doc.originalName} className="p-2 text-blue-600 hover:text-blue-700" title="Download">
                       <Download />
                     </a>
+                    {isAdmin && (
+                      <button
+                        onClick={() => {
+                          setSelectedDocumentForAssign(doc);
+                          setAssignModalOpen(true);
+                        }}
+                        className="p-2 text-purple-600 hover:text-purple-700"
+                        title={t('assignToUser') || 'Assign to User'}
+                      >
+                        <UserPlus />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDeleteDocument(doc.id, true)}
                       className="p-2 text-red-600 hover:text-red-700"
@@ -425,6 +470,20 @@ const DocumentsPage = () => {
           fileUrl={getDocumentDownloadUrl(previewDocument.id)}
           fileName={previewDocument.originalName}
           onClose={() => setPreviewDocument(null)}
+        />
+      )}
+
+      {/* Assign to User Modal (Admin only) */}
+      {isAdmin && (
+        <AssignToUserModal
+          isOpen={assignModalOpen}
+          onClose={() => {
+            setAssignModalOpen(false);
+            setSelectedDocumentForAssign(null);
+          }}
+          onAssign={handleAssignDocument}
+          title={t('assignDocumentToUser') || 'Assign Document to User'}
+          itemName={selectedDocumentForAssign?.originalName}
         />
       )}
     </div>
