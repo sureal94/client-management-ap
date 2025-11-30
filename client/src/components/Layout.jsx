@@ -244,8 +244,8 @@ const Layout = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      <nav className="bg-black text-white shadow-lg sticky top-0 z-40">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden transition-colors duration-200">
+      <nav className="bg-black dark:bg-gray-950 text-white shadow-lg sticky top-0 z-40 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           {/* Desktop Navigation */}
           <div className="hidden md:flex justify-between h-16">

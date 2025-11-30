@@ -4,6 +4,7 @@ export const translations = {
     products: "Products",
     clients: "Clients",
     import: "Import",
+    importHistory: "Import History",
     export: "Export",
     
     // Products
@@ -324,6 +325,7 @@ export const translations = {
     products: "מוצרים",
     clients: "לקוחות",
     import: "ייבוא",
+    importHistory: "היסטוריית ייבוא",
     export: "ייצוא",
     
     // Products

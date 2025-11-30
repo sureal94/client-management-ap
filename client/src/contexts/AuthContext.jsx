@@ -74,6 +74,18 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      // Sync theme on login
+      if (data.user.darkMode !== undefined) {
+        const root = document.documentElement;
+        if (data.user.darkMode) {
+          root.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          root.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+        }
+        window.dispatchEvent(new Event('userUpdated'));
+      }
       return data;
     } catch (error) {
       throw error;
@@ -134,6 +146,8 @@ export const AuthProvider = ({ children }) => {
   const updateUser = (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
+    // Dispatch event for theme sync
+    window.dispatchEvent(new Event('userUpdated'));
   };
 
   const value = {

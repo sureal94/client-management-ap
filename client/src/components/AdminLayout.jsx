@@ -13,11 +13,12 @@ import {
   ChevronLeft,
   ChevronRight,
   History,
-  Upload
+  Upload,
+  Globe
 } from 'lucide-react';
 
 const AdminLayout = ({ children }) => {
-  const { t } = useI18n();
+  const { t, language, toggleLanguage } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -65,12 +66,12 @@ const AdminLayout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-colors duration-200">
       {/* Sidebar */}
       <aside
         className={`${
           isSidebarOpen ? 'w-64' : 'w-0 md:w-16'
-        } bg-gray-900 text-white transition-all duration-300 overflow-hidden fixed md:static h-screen z-40`}
+        } bg-gray-900 text-white transition-all duration-300 overflow-hidden fixed md:static h-screen z-40 rtl:right-0 ltr:left-0`}
       >
         <div className="h-full flex flex-col">
           {/* Header */}
@@ -101,13 +102,13 @@ const AdminLayout = ({ children }) => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto rtl:space-y-reverse">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={handleNavClick}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center gap-3 rtl:gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive(item.path)
                     ? 'bg-primary text-white'
                     : 'text-gray-300 hover:bg-gray-800 hover:text-white'
@@ -153,7 +154,7 @@ const AdminLayout = ({ children }) => {
       {/* Main Content */}
       <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarOpen ? 'md:ml-0' : 'md:ml-0'}`}>
         {/* Top Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between sticky top-0 z-30 transition-colors duration-200">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -168,9 +169,23 @@ const AdminLayout = ({ children }) => {
             >
               <Menu className="w-6 h-6" />
             </button>
-            <span className="text-sm text-gray-600 font-medium">
+            <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">
               {t('adminPanel') || 'Admin Panel'}
             </span>
+          </div>
+          
+          {/* Language Switch Button */}
+          <div className="flex items-center gap-2 rtl:gap-2">
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-2 rtl:gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              title={language === 'en' ? t('switchLanguage') || 'Switch to Hebrew' : t('switchLanguage') || 'Switch to English'}
+            >
+              <Globe className="w-5 h-5 flex-shrink-0" />
+              <span className="hidden sm:inline font-medium">
+                {language === 'en' ? t('hebrew') || 'עברית' : t('english') || 'English'}
+              </span>
+            </button>
           </div>
         </header>
 

@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { I18nProvider } from './i18n/I18nContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './components/Layout';
 import ProductsPage from './pages/ProductsPage';
 import ClientsPage from './pages/ClientsPage';
@@ -194,13 +195,15 @@ function AppRoutes() {
 function App() {
   try {
     return (
-      <I18nProvider>
-        <AuthProvider>
-          <Router>
-            <AppRoutes />
-          </Router>
-        </AuthProvider>
-      </I18nProvider>
+      <ThemeProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <Router>
+              <AppRoutes />
+            </Router>
+          </AuthProvider>
+        </I18nProvider>
+      </ThemeProvider>
     );
   } catch (error) {
     console.error('Error in App component:', error);

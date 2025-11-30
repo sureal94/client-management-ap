@@ -130,3 +130,18 @@ nav {
 nav .absolute {
   pointer-events: auto !important;
 }
+
+/* Smooth theme transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Exclude certain elements from transitions for performance */
+svg,
+img,
+video,
+iframe {
+  transition: none;
+}

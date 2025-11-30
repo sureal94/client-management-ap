@@ -3,6 +3,25 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './styles/index.css'
 
+// Apply theme IMMEDIATELY before React renders to prevent flash
+(function applyThemeImmediately() {
+  const savedTheme = localStorage.getItem('theme');
+  let theme = savedTheme;
+  
+  if (!theme || (theme !== 'dark' && theme !== 'light')) {
+    // Check user profile
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    theme = user.darkMode === true ? 'dark' : 'light';
+  }
+  
+  const root = document.documentElement;
+  if (theme === 'dark') {
+    root.classList.add('dark');
+  } else {
+    root.classList.remove('dark');
+  }
+})();
+
 // Error boundary for better error handling
 const rootElement = document.getElementById('root');
 

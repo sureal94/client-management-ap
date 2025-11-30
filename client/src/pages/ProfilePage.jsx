@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../i18n/I18nContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   User,
   Mail,
@@ -32,6 +33,7 @@ import { format } from 'date-fns';
 const ProfilePage = () => {
   const { t } = useI18n();
   const { user, token, logout, updateUser } = useAuth();
+  const { theme, toggleTheme, setDarkMode } = useTheme();
   const [profile, setProfile] = useState(null);
   const [stats, setStats] = useState({ clientCount: 0, productCount: 0, documentCount: 0 });
   const [loading, setLoading] = useState(true);
@@ -263,19 +265,34 @@ const ProfilePage = () => {
 
   const handleToggleDarkMode = async () => {
     try {
-      const data = await updateUserProfile(token, { darkMode: !profile?.darkMode });
+      const newDarkMode = !profile?.darkMode;
+      
+      // Apply theme IMMEDIATELY before API call (optimistic update)
+      setDarkMode(newDarkMode);
+      
+      // Update user profile in database
+      const data = await updateUserProfile(token, { darkMode: newDarkMode });
       setProfile(data.user);
       updateUser(data.user);
-      // Apply dark mode to document
-      if (data.user.darkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      
+      // Ensure theme is still applied (in case something went wrong)
+      setDarkMode(newDarkMode);
+      
+      setSuccess(t('profileUpdated') || 'Theme updated successfully');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message || 'Failed to update theme');
+      // Revert theme on error
+      setDarkMode(profile?.darkMode || false);
     }
   };
+
+  // Sync theme with profile when profile loads
+  useEffect(() => {
+    if (profile && profile.darkMode !== undefined) {
+      setDarkMode(profile.darkMode);
+    }
+  }, [profile, setDarkMode]);
 
   const handleDeleteProfile = async () => {
     if (!window.confirm(t('confirmDeleteProfile') || 'Are you sure you want to delete your profile? This action cannot be undone.')) {
@@ -316,19 +333,19 @@ const ProfilePage = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
+      <h1 className="text-3xl font-bold mb-6 flex items-center gap-2 text-gray-900 dark:text-white">
         <User className="w-8 h-8 text-primary" />
         {t('profile') || 'Profile'}
       </h1>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg text-sm transition-colors duration-200">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-lg text-sm transition-colors duration-200">
           {success}
         </div>
       )}
@@ -336,7 +353,7 @@ const ProfilePage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Profile Picture & Basic Info */}
         <div className="md:col-span-1">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <div className="text-center">
               {/* Profile Picture Container - Fixed Circular Size */}
               <div className="relative inline-block mb-4">
@@ -429,14 +446,14 @@ const ProfilePage = () => {
                   />
                 </div>
               </div>
-              <h2 className="text-xl font-bold">{profile.fullName}</h2>
-              <p className="text-gray-600 text-sm">{profile.email}</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{profile.fullName}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">{profile.email}</p>
             </div>
 
             <div className="mt-6 space-y-3">
               <div className="flex items-center gap-2 text-sm">
                 <Users className="w-4 h-4 text-primary" />
-                <span className="text-gray-600">{t('clients') || 'Clients'}:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('clients') || 'Clients'}:</span>
                 <span className="font-bold">{stats.clientCount}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
@@ -451,9 +468,9 @@ const ProfilePage = () => {
         {/* Main Profile Content */}
         <div className="md:col-span-2 space-y-6">
           {/* Account Information */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">{t('accountInformation') || 'Account Information'}</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('accountInformation') || 'Account Information'}</h3>
               {!editingProfile && (
                 <button
                   onClick={() => setEditingProfile(true)}
@@ -467,25 +484,25 @@ const ProfilePage = () => {
             {editingProfile ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {t('fullName') || 'Full Name'}
                   </label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {t('phone') || 'Phone Number'}
                   </label>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -514,8 +531,8 @@ const ProfilePage = () => {
                 <div className="flex items-center gap-3">
                   <User className="w-5 h-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-600">{t('fullName') || 'Full Name'}</p>
-                    <p className="font-medium">{profile.fullName}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('fullName') || 'Full Name'}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{profile.fullName}</p>
                   </div>
                 </div>
                 {profile.phone && (
@@ -532,7 +549,7 @@ const ProfilePage = () => {
           </div>
 
           {/* Email */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <Mail className="w-5 h-5" />
@@ -551,18 +568,18 @@ const ProfilePage = () => {
             {editingEmail ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {t('newEmail') || 'New Email'}
                   </label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {t('currentPassword') || 'Current Password'}
                   </label>
                   <div className="relative">
@@ -601,12 +618,12 @@ const ProfilePage = () => {
                 </div>
               </div>
             ) : (
-              <p className="text-gray-700">{profile.email}</p>
+              <p className="text-gray-700 dark:text-gray-300">{profile.email}</p>
             )}
           </div>
 
           {/* Password */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <Lock className="w-5 h-5" />
@@ -625,7 +642,7 @@ const ProfilePage = () => {
             {editingPassword ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {t('currentPassword') || 'Current Password'}
                   </label>
                   <div className="relative">
@@ -645,7 +662,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {t('newPassword') || 'New Password'}
                   </label>
                   <div className="relative">
@@ -666,7 +683,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {t('confirmPassword') || 'Confirm Password'}
                   </label>
                   <div className="relative">
@@ -707,19 +724,19 @@ const ProfilePage = () => {
                 </div>
               </div>
             ) : (
-              <p className="text-gray-600 text-sm">••••••••</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">••••••••</p>
             )}
           </div>
 
           {/* Account Details */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <h3 className="text-lg font-bold mb-4">{t('accountDetails') || 'Account Details'}</h3>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">{t('accountCreated') || 'Account Created'}</p>
-                  <p className="font-medium">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('accountCreated') || 'Account Created'}</p>
+                  <p className="font-medium text-gray-900 dark:text-white">
                     {profile.createdAt ? format(new Date(profile.createdAt), 'dd/MM/yyyy') : '-'}
                   </p>
                 </div>
@@ -739,30 +756,31 @@ const ProfilePage = () => {
           </div>
 
           {/* Dark Mode Toggle */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                {profile.darkMode ? (
+                {theme === 'dark' ? (
                   <Moon className="w-5 h-5 text-primary" />
                 ) : (
                   <Sun className="w-5 h-5 text-primary" />
                 )}
                 <div>
-                  <h3 className="font-bold">{t('theme') || 'Theme'}</h3>
-                  <p className="text-sm text-gray-600">
-                    {profile.darkMode ? (t('darkMode') || 'Dark Mode') : (t('lightMode') || 'Light Mode')}
+                  <h3 className="font-bold text-gray-900 dark:text-white">{t('theme') || 'Theme'}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {theme === 'dark' ? (t('darkMode') || 'Dark Mode') : (t('lightMode') || 'Light Mode')}
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleToggleDarkMode}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  profile.darkMode ? 'bg-primary' : 'bg-gray-300'
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                  theme === 'dark' ? 'bg-primary' : 'bg-gray-300'
                 }`}
+                aria-label={theme === 'dark' ? t('switchToLightMode') || 'Switch to Light Mode' : t('switchToDarkMode') || 'Switch to Dark Mode'}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    profile.darkMode ? 'translate-x-6' : 'translate-x-1'
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                    theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
               </button>
@@ -770,7 +788,7 @@ const ProfilePage = () => {
           </div>
 
           {/* Logout */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <h3 className="text-lg font-bold mb-2">{t('logout') || 'Logout'}</h3>
             <p className="text-sm text-gray-600 mb-4">
               {t('logoutDescription') || 'Sign out of your account'}
@@ -785,9 +803,9 @@ const ProfilePage = () => {
           </div>
 
           {/* Delete Profile */}
-          <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6">
-            <h3 className="text-lg font-bold text-red-600 mb-2">{t('deleteProfile') || 'Delete Profile'}</h3>
-            <p className="text-sm text-gray-600 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-red-200 dark:border-red-800 p-6 transition-colors duration-200">
+            <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">{t('deleteProfile') || 'Delete Profile'}</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               {t('deleteProfileWarning') || 'Once you delete your profile, there is no going back. Please be certain.'}
             </p>
             <button
