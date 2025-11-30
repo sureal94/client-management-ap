@@ -53,9 +53,20 @@ const ProductsPage = () => {
     try {
       const updatedProduct = await updateProduct(id, productData);
       setProducts(products.map(p => p.id === id ? updatedProduct : p));
+      // Show success message
+      alert('Product updated successfully');
     } catch (error) {
       console.error('Error updating product:', error);
-      alert('Failed to update product');
+      const errorMessage = error.message || 'Failed to update product';
+      if (errorMessage.includes('not running') || errorMessage.includes('Failed to fetch')) {
+        alert(`Backend server is not running!\n\nPlease make sure the backend server is started on port 5000.\n\nRun: cd server && npm run dev`);
+      } else if (errorMessage.includes('Access denied') || errorMessage.includes('403')) {
+        alert('Access denied. You do not have permission to update this product.');
+      } else if (errorMessage.includes('not found') || errorMessage.includes('404')) {
+        alert('Product not found. Please refresh the page and try again.');
+      } else {
+        alert(`Failed to update product: ${errorMessage}`);
+      }
     }
   };
 

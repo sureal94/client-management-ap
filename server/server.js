@@ -7,6 +7,7 @@ import fs from 'fs/promises';
 import { productsRouter } from './routes/products.js';
 import { clientsRouter } from './routes/clients.js';
 import { importRouter } from './routes/import.js';
+import { importHistoryRouter } from './routes/importHistory.js';
 import { documentsRouter } from './routes/documents.js';
 import { authRouter } from './routes/auth.js';
 import { usersRouter } from './routes/users.js';
@@ -86,6 +87,7 @@ app.use('/api/admin', adminRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/clients', clientsRouter);
 app.use('/api/import', importRouter);
+app.use('/api/import-history', importHistoryRouter);
 app.use('/api/documents', documentsRouter);
 
 // Serve document files

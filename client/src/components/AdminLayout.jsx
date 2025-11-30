@@ -11,7 +11,9 @@ import {
   X,
   Shield,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  History,
+  Upload
 } from 'lucide-react';
 
 const AdminLayout = ({ children }) => {
@@ -46,6 +48,8 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/clients', icon: Users, label: t('clients') || 'Clients' },
     { path: '/admin/products', icon: Package, label: t('products') || 'Products' },
     { path: '/admin/documents', icon: FileText, label: t('documents') || 'Documents' },
+    { path: '/admin/import', icon: Upload, label: t('import') || 'Import' },
+    { path: '/admin/import-history', icon: History, label: t('importHistory') || 'Import History' },
   ];
 
   // Only close sidebar on mobile when clicking nav items

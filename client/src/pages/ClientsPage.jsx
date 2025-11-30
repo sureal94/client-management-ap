@@ -100,9 +100,13 @@ const ClientsPage = () => {
       if (editingClient) {
         const updated = await updateClient(editingClient.id, clientData);
         setClients(clients.map(c => c.id === editingClient.id ? updated : c));
+        // Trigger event to refresh reminders in Layout
+        window.dispatchEvent(new CustomEvent('clientUpdated'));
       } else {
         const newClient = await createClient(clientData);
         setClients([...clients, newClient]);
+        // Trigger event to refresh reminders in Layout
+        window.dispatchEvent(new CustomEvent('clientSaved'));
       }
       setIsModalOpen(false);
       setEditingClient(null);

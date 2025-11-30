@@ -23,7 +23,8 @@ export async function readData() {
       products: [], 
       clients: [], 
       documents: [],
-      passwordResetTokens: []
+      passwordResetTokens: [],
+      importHistory: []
     };
   }
 }
@@ -75,6 +76,48 @@ export async function getClients() {
 export async function saveClients(clients) {
   const data = await readData();
   data.clients = clients;
+  await writeData(data);
+}
+
+export async function getImportHistory() {
+  const data = await readData();
+  return data.importHistory || [];
+}
+
+export async function saveImportHistory(history) {
+  const data = await readData();
+  data.importHistory = history;
+  await writeData(data);
+}
+
+export async function addImportLog(logEntry) {
+  const data = await readData();
+  if (!data.importHistory) {
+    data.importHistory = [];
+  }
+  data.importHistory.push(logEntry);
+  await writeData(data);
+  return logEntry;
+}
+
+export async function getImportLogById(id) {
+  const data = await readData();
+  const history = data.importHistory || [];
+  return history.find(log => log.id === id) || null;
+}
+
+export async function deleteImportLog(id) {
+  const data = await readData();
+  if (!data.importHistory) {
+    data.importHistory = [];
+  }
+  data.importHistory = data.importHistory.filter(log => log.id !== id);
+  await writeData(data);
+}
+
+export async function clearImportHistory() {
+  const data = await readData();
+  data.importHistory = [];
   await writeData(data);
 }
 

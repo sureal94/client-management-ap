@@ -14,7 +14,10 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import AdminChangePasswordPage from './pages/AdminChangePasswordPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import ImportHistoryPage from './pages/ImportHistoryPage';
+import ImportLogPage from './pages/ImportLogPage';
 import AdminLayout from './components/AdminLayout';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -103,6 +106,30 @@ function AppRoutes() {
         element={
           <AdminLayout>
             <DocumentsPage />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/import"
+        element={
+          <AdminLayout>
+            <ImportPage />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/import-history"
+        element={
+          <AdminLayout>
+            <ImportHistoryPage />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/import-history/:id"
+        element={
+          <AdminLayout>
+            <ImportLogPage />
           </AdminLayout>
         }
       />

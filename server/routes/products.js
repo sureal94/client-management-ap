@@ -1,5 +1,5 @@
 import express from 'express';
-import { getProducts, saveProducts, readData } from '../utils/storage.js';
+import { getProducts, saveProducts, readData, addImportLog } from '../utils/storage.js';
 import { calculateFinalPrice } from '../utils/calculations.js';
 import { authenticateToken } from '../middleware/auth.js';
 
@@ -232,21 +232,81 @@ productsRouter.post('/bulk-delete', authenticateToken, async (req, res) => {
 // Bulk import products
 productsRouter.post('/bulk', authenticateToken, async (req, res) => {
   try {
-    const { products: newProducts } = req.body;
+    const { products: newProducts, assignToUserId, fileName, fileSize, fileType } = req.body;
     const existingProducts = await getProducts();
-    const imported = newProducts.map(p => ({
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      userId: req.userId, // Assign to current user
-      nameEn: p.nameEn || p.name || '',
-      nameHe: p.nameHe || '',
-      code: p.code,
-      price: parseFloat(p.price) || 0,
-      discount: parseFloat(p.discount) || 0,
-      discountType: p.discountType || 'percent',
-    }));
+    const admin = await isAdmin(req.userId);
+    
+    // Get admin user info for logging
+    const data = await readData();
+    const users = data.users || [];
+    const adminUser = users.find(u => u.id === req.userId);
+    const importedBy = adminUser ? (adminUser.name || adminUser.email || 'Admin') : 'Admin';
+    
+    const importId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const errors = [];
+    const successful = [];
+    
+    const imported = newProducts.map((p, index) => {
+      try {
+        const productId = Date.now().toString() + Math.random().toString(36).substr(2, 9) + index;
+        const userId = assignToUserId || req.userId; // Use assigned user or current user
+        
+        const product = {
+          id: productId,
+          userId: userId,
+          nameEn: p.nameEn || p.name || '',
+          nameHe: p.nameHe || '',
+          code: p.code,
+          price: parseFloat(p.price) || 0,
+          discount: parseFloat(p.discount) || 0,
+          discountType: p.discountType || 'percent',
+        };
+        
+        successful.push({ row: index + 1, data: p });
+        return product;
+      } catch (err) {
+        errors.push({
+          row: index + 1,
+          data: p,
+          error: err.message || 'Unknown error'
+        });
+        return null;
+      }
+    }).filter(Boolean);
+    
     const updated = [...existingProducts, ...imported];
     await saveProducts(updated);
-    res.json({ success: true, count: imported.length });
+    
+    // Log import history
+    if (admin) {
+      const assignedUser = assignToUserId ? users.find(u => u.id === assignToUserId) : null;
+      await addImportLog({
+        id: importId,
+        type: 'products',
+        importedBy: importedBy,
+        importedById: req.userId,
+        assignedUserId: assignToUserId || null,
+        assignedUserName: assignedUser ? (assignedUser.name || assignedUser.email) : null,
+        fileName: fileName || 'Unknown',
+        fileSize: fileSize || 0,
+        fileType: fileType || 'unknown',
+        totalRows: newProducts.length,
+        successfulCount: successful.length,
+        failedCount: errors.length,
+        status: errors.length === 0 ? 'success' : (successful.length > 0 ? 'partial' : 'error'),
+        createdAt: new Date().toISOString(),
+        errors: errors,
+        successful: successful.slice(0, 100) // Limit to first 100 for storage
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      count: imported.length,
+      importId: admin ? importId : null,
+      errors: errors.length,
+      successful: successful.length
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

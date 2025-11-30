@@ -1,5 +1,5 @@
 import express from 'express';
-import { getClients, saveClients, readData } from '../utils/storage.js';
+import { getClients, saveClients, readData, addImportLog } from '../utils/storage.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 export const clientsRouter = express.Router();
@@ -109,11 +109,27 @@ clientsRouter.put('/:id', authenticateToken, async (req, res) => {
       }
     }
     
+    // Ensure reminders have userId
+    const updatedReminders = (req.body.reminders || []).map(r => ({
+      ...r,
+      userId: r.userId || req.userId, // Ensure userId is set
+      createdAt: r.createdAt || new Date().toISOString()
+    }));
+    
+    // Ensure comments have userId
+    const updatedComments = (req.body.comments || []).map(c => ({
+      ...c,
+      userId: c.userId || req.userId, // Ensure userId is set
+      createdAt: c.createdAt || new Date().toISOString()
+    }));
+    
     clients[index] = {
       ...clients[index],
       ...req.body,
       id: req.params.id,
       userId: admin ? (req.body.userId || clients[index].userId) : req.userId, // Admin can change, user cannot
+      reminders: updatedReminders,
+      comments: updatedComments,
     };
     await saveClients(clients);
     res.json(clients[index]);
@@ -204,31 +220,91 @@ clientsRouter.post('/bulk-delete', authenticateToken, async (req, res) => {
 // Bulk import clients
 clientsRouter.post('/bulk', authenticateToken, async (req, res) => {
   try {
-    const { clients: newClients } = req.body;
+    const { clients: newClients, assignToUserId, fileName, fileSize, fileType } = req.body;
     const existingClients = await getClients();
-    const imported = newClients.map(c => ({
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      userId: req.userId, // Assign to current user
-      name: c.name || '',
-      pc: c.pc || '',
-      phone: c.phone || '',
-      email: c.email || '',
-      comments: (c.comments || []).map(comment => ({
-        ...comment,
-        userId: req.userId, // Track ownership
-        createdAt: comment.createdAt || new Date().toISOString()
-      })),
-      reminders: (c.reminders || []).map(reminder => ({
-        ...reminder,
-        userId: req.userId, // Track ownership
-        createdAt: reminder.createdAt || new Date().toISOString()
-      })),
-      productIds: c.productIds || [],
-      lastContacted: c.lastContacted || new Date().toISOString().split('T')[0],
-    }));
+    const admin = await isAdmin(req.userId);
+    
+    // Get admin user info for logging
+    const data = await readData();
+    const users = data.users || [];
+    const adminUser = users.find(u => u.id === req.userId);
+    const importedBy = adminUser ? (adminUser.name || adminUser.email || 'Admin') : 'Admin';
+    
+    const importId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const errors = [];
+    const successful = [];
+    
+    const imported = newClients.map((c, index) => {
+      try {
+        const clientId = Date.now().toString() + Math.random().toString(36).substr(2, 9) + index;
+        const userId = assignToUserId || req.userId; // Use assigned user or current user
+        
+        const client = {
+          id: clientId,
+          userId: userId,
+          name: c.name || '',
+          pc: c.pc || '',
+          phone: c.phone || '',
+          email: c.email || '',
+          comments: (c.comments || []).map(comment => ({
+            ...comment,
+            userId: userId,
+            createdAt: comment.createdAt || new Date().toISOString()
+          })),
+          reminders: (c.reminders || []).map(reminder => ({
+            ...reminder,
+            userId: userId,
+            createdAt: reminder.createdAt || new Date().toISOString()
+          })),
+          productIds: c.productIds || [],
+          lastContacted: c.lastContacted || new Date().toISOString().split('T')[0],
+        };
+        
+        successful.push({ row: index + 1, data: c });
+        return client;
+      } catch (err) {
+        errors.push({
+          row: index + 1,
+          data: c,
+          error: err.message || 'Unknown error'
+        });
+        return null;
+      }
+    }).filter(Boolean);
+    
     const updated = [...existingClients, ...imported];
     await saveClients(updated);
-    res.json({ success: true, count: imported.length });
+    
+    // Log import history
+    if (admin) {
+      const assignedUser = assignToUserId ? users.find(u => u.id === assignToUserId) : null;
+      await addImportLog({
+        id: importId,
+        type: 'clients',
+        importedBy: importedBy,
+        importedById: req.userId,
+        assignedUserId: assignToUserId || null,
+        assignedUserName: assignedUser ? (assignedUser.name || assignedUser.email) : null,
+        fileName: fileName || 'Unknown',
+        fileSize: fileSize || 0,
+        fileType: fileType || 'unknown',
+        totalRows: newClients.length,
+        successfulCount: successful.length,
+        failedCount: errors.length,
+        status: errors.length === 0 ? 'success' : (successful.length > 0 ? 'partial' : 'error'),
+        createdAt: new Date().toISOString(),
+        errors: errors,
+        successful: successful.slice(0, 100) // Limit to first 100 for storage
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      count: imported.length,
+      importId: admin ? importId : null,
+      errors: errors.length,
+      successful: successful.length
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

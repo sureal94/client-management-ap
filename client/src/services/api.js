@@ -68,7 +68,7 @@ export const createProduct = (product) => {
 export const updateProduct = (id, product) => {
   return fetch(`${API_BASE_URL}/products/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify(product),
   }).then(handleResponse);
 };
@@ -152,19 +152,31 @@ export const uploadXLSX = (file) => {
   }).then(handleResponse);
 };
 
-export const bulkImportProducts = (products) => {
+export const bulkImportProducts = (products, assignToUserId = null, fileName = null, fileSize = null, fileType = null) => {
   return fetch(`${API_BASE_URL}/products/bulk`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ products }),
+    body: JSON.stringify({ 
+      products,
+      assignToUserId,
+      fileName,
+      fileSize,
+      fileType
+    }),
   }).then(handleResponse);
 };
 
-export const bulkImportClients = (clients) => {
+export const bulkImportClients = (clients, assignToUserId = null, fileName = null, fileSize = null, fileType = null) => {
   return fetch(`${API_BASE_URL}/clients/bulk`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ clients }),
+    body: JSON.stringify({ 
+      clients,
+      assignToUserId,
+      fileName,
+      fileSize,
+      fileType
+    }),
   }).then(handleResponse);
 };
 
@@ -453,6 +465,33 @@ export const resetPassword = (token, newPassword) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ token, newPassword }),
+  }).then(handleResponse);
+};
+
+// Import History API
+export const getImportHistory = () => {
+  return fetch(`${API_BASE_URL}/import-history`, {
+    headers: getHeaders(false),
+  }).then(handleResponse);
+};
+
+export const getImportLog = (id) => {
+  return fetch(`${API_BASE_URL}/import-history/${id}`, {
+    headers: getHeaders(false),
+  }).then(handleResponse);
+};
+
+export const deleteImportLog = (id) => {
+  return fetch(`${API_BASE_URL}/import-history/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders(false),
+  }).then(handleResponse);
+};
+
+export const clearImportHistory = () => {
+  return fetch(`${API_BASE_URL}/import-history`, {
+    method: 'DELETE',
+    headers: getHeaders(false),
   }).then(handleResponse);
 };
 

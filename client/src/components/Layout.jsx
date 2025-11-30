@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nContext';
 import { Package, Users, Upload, Globe, Menu, X, Bell, Calendar, Clock, FileText, User } from 'lucide-react';
-import { fetchClients } from '../services/api';
+import { fetchClients, fetchProducts, fetchAllDocuments, fetchPersonalDocuments } from '../services/api';
 import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../assets/IMG-20251124-WA0020.jpg';
@@ -22,64 +22,153 @@ const Layout = ({ children }) => {
 
   const isActive = (path) => location.pathname === path;
 
+  // Helper to determine if a reminder is urgent (within 24 hours or overdue)
+  const isUrgentReminder = (reminderDate) => {
+    if (!reminderDate) return false;
+    
+    const now = new Date();
+    let reminder;
+    
+    // Parse date string as local date (avoid timezone issues)
+    if (typeof reminderDate === 'string') {
+      // If it's a date-only string (YYYY-MM-DD), parse as local date
+      if (reminderDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = reminderDate.split('-').map(Number);
+        reminder = new Date(year, month - 1, day);
+      } else {
+        reminder = new Date(reminderDate);
+      }
+    } else {
+      reminder = new Date(reminderDate);
+    }
+    
+    // Set to start of day for accurate comparison
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const reminderDateOnly = new Date(reminder.getFullYear(), reminder.getMonth(), reminder.getDate());
+    const in24Hours = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+    
+    // Urgent if overdue, today, or tomorrow (within 24 hours)
+    return reminderDateOnly <= in24Hours || reminderDateOnly < today;
+  };
+
+  // Fetch reminders from clients
+  const fetchReminders = async () => {
+    try {
+      const [clients, products, allDocs, personalDocs] = await Promise.all([
+        fetchClients().catch(() => []),
+        fetchProducts().catch(() => []),
+        fetchAllDocuments().catch(() => []),
+        fetchPersonalDocuments().catch(() => [])
+      ]);
+
+      // Set product count
+      setProductCount(products.length || 0);
+
+      // Set document count (personal + client documents)
+      const clientDocIds = new Set();
+      clients.forEach(client => {
+        if (client.id) clientDocIds.add(client.id);
+      });
+      const clientDocs = allDocs.filter(d => d.clientId && clientDocIds.has(d.clientId));
+      setDocumentCount((personalDocs.length || 0) + (clientDocs.length || 0));
+
+      // Get current user ID (check both regular token and admin token)
+      const isAdminMode = window.location.pathname.startsWith('/admin');
+      const adminToken = localStorage.getItem('adminToken');
+      const isAdmin = isAdminMode && adminToken;
+      const currentUserId = isAdmin ? null : (user?.id || null);
+      
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const in30Days = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+      
+      const allReminders = [];
+      
+      clients.forEach(client => {
+        if (client.reminders && client.reminders.length > 0) {
+          client.reminders.forEach(reminder => {
+            // Filter by userId: show reminders for current user, or all if admin
+            const reminderUserId = reminder.userId || client.userId;
+            
+            if (!isAdmin && reminderUserId !== currentUserId) {
+              return; // Skip reminders not belonging to current user
+            }
+            
+            // Parse reminder date
+            let reminderDate;
+            if (reminder.date && typeof reminder.date === 'string') {
+              if (reminder.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [year, month, day] = reminder.date.split('-').map(Number);
+                reminderDate = new Date(year, month - 1, day);
+              } else {
+                reminderDate = new Date(reminder.date);
+              }
+            } else {
+              reminderDate = new Date(reminder.date);
+            }
+            
+            const reminderDateOnly = new Date(reminderDate.getFullYear(), reminderDate.getMonth(), reminderDate.getDate());
+            
+            // Show reminders within 30 days or overdue
+            if (reminderDateOnly <= in30Days || reminderDateOnly < today) {
+              allReminders.push({
+                ...reminder,
+                clientId: client.id,
+                clientName: client.name || reminder.clientName,
+                isUrgent: isUrgentReminder(reminder.date)
+              });
+            }
+          });
+        }
+      });
+
+      // Sort by date (earliest first)
+      allReminders.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        const parsedA = a.date.match(/^\d{4}-\d{2}-\d{2}$/) 
+          ? new Date(dateA.getFullYear(), dateA.getMonth(), dateA.getDate())
+          : dateA;
+        const parsedB = b.date.match(/^\d{4}-\d{2}-\d{2}$/)
+          ? new Date(dateB.getFullYear(), dateB.getMonth(), dateB.getDate())
+          : dateB;
+        return parsedA - parsedB;
+      });
+      
+      setUpcomingReminders(allReminders);
+      console.log('[Reminders] Fetched:', allReminders.length, 'reminders');
+    } catch (err) {
+      console.error('[Reminders] Fetch failed:', err);
+    }
+  };
+
   // Fetch reminders and counts
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [clients, products, allDocs, personalDocs] = await Promise.all([
-          fetchClients().catch(() => []),
-          fetchProducts().catch(() => []),
-          fetchAllDocuments().catch(() => []),
-          fetchPersonalDocuments().catch(() => [])
-        ]);
-
-        // Set product count
-        setProductCount(products.length || 0);
-
-        // Set document count (personal + client documents)
-        const clientDocIds = new Set();
-        clients.forEach(client => {
-          if (client.id) clientDocIds.add(client.id);
-        });
-        const clientDocs = allDocs.filter(d => d.clientId && clientDocIds.has(d.clientId));
-        setDocumentCount((personalDocs.length || 0) + (clientDocs.length || 0));
-
-        // Load reminders
-        const now = new Date();
-        const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        const allReminders = [];
-        clients.forEach(client => {
-          if (client.reminders && client.reminders.length > 0) {
-            client.reminders.forEach(reminder => {
-              const reminderDate = new Date(reminder.date);
-              const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-              if (reminderDate <= in7Days) {
-                allReminders.push({
-                  ...reminder,
-                  clientId: client.id,
-                  clientName: client.name || reminder.clientName,
-                  isUrgent: reminderDate <= in24Hours
-                });
-              }
-            });
-          }
-        });
-
-        allReminders.sort((a, b) => new Date(a.date) - new Date(b.date));
-        setUpcomingReminders(allReminders);
-      } catch (err) {
-        console.error('Failed to load data:', err);
-      }
-    };
-
-    loadData();
+    // Initial fetch
+    fetchReminders();
+    
     // Refresh every minute
-    const interval = setInterval(loadData, 60000);
-    return () => clearInterval(interval);
-  }, [location.pathname]); // Refresh when navigating
+    const interval = setInterval(fetchReminders, 60000);
+    
+    // Listen for clientSaved or clientUpdated events
+    const handleClientSaved = () => {
+      console.log('[Reminders] clientSaved/clientUpdated event received, refreshing reminders...');
+      fetchReminders();
+    };
+    
+    window.addEventListener('clientSaved', handleClientSaved);
+    window.addEventListener('clientUpdated', handleClientSaved);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('clientSaved', handleClientSaved);
+      window.removeEventListener('clientUpdated', handleClientSaved);
+    };
+  }, [location.pathname, user?.id]); // Refresh when navigating or user changes
 
-  // Check if there are urgent reminders (within 24 hours)
-  const hasUrgentReminders = upcomingReminders.some(r => r.isUrgent);
+  // Count urgent reminders for red dot
+  const urgentCount = upcomingReminders.filter(r => r.isUrgent).length;
+  const hasUrgentReminders = urgentCount > 0;
 
   // Format reminder time
   const formatReminderTime = (dateString) => {
