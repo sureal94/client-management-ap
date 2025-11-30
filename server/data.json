@@ -1,420 +1,6 @@
 {
   "products": [
     {
-      "id": "17642615154445dau5uy3j",
-      "nameEn": "לוח גבס 260/120/12.5",
-      "nameHe": "",
-      "code": "260120",
-      "price": 119.18,
-      "discount": 65.8,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444murxetzdo",
-      "nameEn": "לוח גבס חסין אש 260/120/12.5",
-      "nameHe": "",
-      "code": "263120",
-      "price": 154.13,
-      "discount": 67.3,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154444wjcs7ygh",
-      "nameEn": "לוח בלו-אקס 260/120/12.5",
-      "nameHe": "",
-      "code": "BE260120",
-      "price": 229.32,
-      "discount": 44,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444ilh3ldvnf",
-      "nameEn": "לוח סופרבורד 260/120/12.5 (ט)",
-      "nameHe": "",
-      "code": "SB260120",
-      "price": 229.32,
-      "discount": 44,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154442v5uc1sim",
-      "nameEn": "מסלול 300/50",
-      "nameHe": "",
-      "code": "50",
-      "price": 39.9,
-      "discount": 74,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444emlucloh7",
-      "nameEn": "ניצב 300/50",
-      "nameHe": "",
-      "code": "50300",
-      "price": 46.8,
-      "discount": 74,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154448at68h1hl",
-      "nameEn": "מסלול 300/70",
-      "nameHe": "",
-      "code": "70",
-      "price": 44.7,
-      "discount": 74,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154444le21o05l",
-      "nameEn": "ניצב 300/70",
-      "nameHe": "",
-      "code": "70300",
-      "price": 52.8,
-      "discount": 74,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154444frmqn0x1",
-      "nameEn": "מסלול 300/50 עובי 0.6 מ\"מ",
-      "nameHe": "",
-      "code": "50/06",
-      "price": 50.4,
-      "discount": 74,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444t7nzu73on",
-      "nameEn": "ניצב 300/50 עובי 0.6 מ\"מ",
-      "nameHe": "",
-      "code": "5030006",
-      "price": 58.8,
-      "discount": 74,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444td4r1gigs",
-      "nameEn": "מסלול 300/70 עובי 0.6 מ\"מ",
-      "nameHe": "",
-      "code": "70/06",
-      "price": 56.85,
-      "discount": 74,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444zgcz2imc5",
-      "nameEn": "ניצב 300/70 עובי 0.6 מ\"מ",
-      "nameHe": "",
-      "code": "7030006",
-      "price": 67.2,
-      "discount": 74,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444x3paaudow",
-      "nameEn": "פס איטום 5 ס\"מ-גליל 25 מ\"א",
-      "nameHe": "",
-      "code": "5/50",
-      "price": 36.2,
-      "discount": 30,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444st6p20b60",
-      "nameEn": "צ.ז מינרלי \"2 /12 ח. 40 (24 מ\"ר בגליל )",
-      "nameHe": "",
-      "code": "K21240",
-      "price": 540,
-      "discount": 64.5,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444v72s122ch",
-      "nameEn": "צ.ז מינרלי \"2 /24 ח.40 (12 מ\"ר בגליל )",
-      "nameHe": "",
-      "code": "K22440",
-      "price": 540,
-      "discount": 64.5,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444ugce4551g",
-      "nameEn": "צ.ז  24 /\"2 +פאלב 40/120_______שק  (חתוך 40/ 9.6 מ\"ר בשק)",
-      "nameHe": "",
-      "code": "15024-40",
-      "price": 70,
-      "discount": 50,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444cw6akkvnv",
-      "nameEn": "צ.סלעים 2\"/60 +פלא\"ב 60/120   ____ שק",
-      "nameHe": "",
-      "code": "15060",
-      "price": 132,
-      "discount": 50,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154446rpxe4wvq",
-      "nameEn": "צ.סלעים 2\"/80 חשוף  60/120____  שק",
-      "nameHe": "",
-      "code": "5080",
-      "price": 125,
-      "discount": 50,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444oit3kwigq",
-      "nameEn": "בורג 25 ממ לגבס - 1,000 יח' קליק(16)",
-      "nameHe": "",
-      "code": "251000",
-      "price": 74.5,
-      "discount": 52,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444wu7h5rhid",
-      "nameEn": "בורג 25 ממ - 10,000 יח' CLICK",
-      "nameHe": "",
-      "code": "2510000",
-      "price": 605,
-      "discount": 52,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444y5zi1p3ab",
-      "nameEn": "בורג פאפ 14 ממ- 1,000 יח' קליק(16)",
-      "nameHe": "",
-      "code": "141000",
-      "price": 103,
-      "discount": 52,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444ae4b4j66r",
-      "nameEn": "בורג פח 14 ממ-10,000 יח' CLICK",
-      "nameHe": "",
-      "code": "1410000",
-      "price": 890,
-      "discount": 52,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444ltrj770hb",
-      "nameEn": "בורג למיתד 37 ממ -100 יח' קליק(48)",
-      "nameHe": "",
-      "code": "37100",
-      "price": 42.2,
-      "discount": 45,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444j5jut3ac7",
-      "nameEn": "ערכת דיבל תקן+בורג 6/50 +דיסקית- 100 יח' (18)",
-      "nameHe": "",
-      "code": "840100",
-      "price": 75,
-      "discount": 48,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444737j9tk5h",
-      "nameEn": "דיבל 7 - 100 יח' (לא תיקני)",
-      "nameHe": "",
-      "code": "7100",
-      "price": 6.84,
-      "discount": 30,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444i0a4nna1y",
-      "nameEn": "מגן פינה משתנה 30 מ\"א",
-      "nameHe": "",
-      "code": "30",
-      "price": 82.5,
-      "discount": 35,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444dxrnt9ay7",
-      "nameEn": "סרט ניר משורין 150 מ\"א",
-      "nameHe": "",
-      "code": "150",
-      "price": 27.5,
-      "discount": 25,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444af2l6o59a",
-      "nameEn": "סרט פיבה פיוז USA (ארה\"ב) 150 מ' (10)  FIBAFUSE",
-      "nameHe": "",
-      "code": "150F+",
-      "price": 74.5,
-      "discount": 33,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444pe0pkkvmr",
-      "nameEn": "סרט פיבה פיוז USA (ארה\"ב) 76 מ'(10) FIBAFUSE",
-      "nameHe": "",
-      "code": "76F",
-      "price": 46.4,
-      "discount": 33,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444j04aowk5m",
-      "nameEn": "מגן פינה אלומיניום (פינה 0)- 3 מ' (9579)",
-      "nameHe": "",
-      "code": "9579300",
-      "price": 13.65,
-      "discount": 30,
-      "discountType": "percent"
-    },
-    {
-      "id": "176426151544402n4wi36o",
-      "nameEn": "ג'ויה 673 מונח 61/61 ע.12 ממ (14)",
-      "nameHe": "",
-      "code": "673",
-      "price": 16.74,
-      "discount": 42,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154441hj8yop1a",
-      "nameEn": "ואלי 400 מונח 61/61 ע.12 ממ (14)",
-      "nameHe": "",
-      "code": "400",
-      "price": 16.74,
-      "discount": 42,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444pxiah36vt",
-      "nameEn": "ונציה 415 מונח 61/61 ע.12 ממ (14)",
-      "nameHe": "",
-      "code": "415",
-      "price": 16.74,
-      "discount": 42,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444ag986fpex",
-      "nameEn": "דזרט 696 מונח 61/61 ע.12 ממ(14)",
-      "nameHe": "",
-      "code": "696",
-      "price": 16.74,
-      "discount": 42,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444lj3ko26xa",
-      "nameEn": "פיברה אדוונס מונח 61/61 *ע.12 ממ* (25)",
-      "nameHe": "",
-      "code": "FC616112A",
-      "price": 28.27,
-      "discount": 45,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444ql4pr29b5",
-      "nameEn": "פיברה אדוונס מונח 61/61 ע.15 (20)",
-      "nameHe": "",
-      "code": "101101",
-      "price": 32.36,
-      "discount": 45,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154440zt7dgd1l",
-      "nameEn": "פיברה אדוונס *ח.ש* 61/61 ע.15 (20)",
-      "nameHe": "",
-      "code": "102102",
-      "price": 36.83,
-      "discount": 45,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444d9wtcsgtv",
-      "nameEn": "סייד רנר 0.61 מ\"א - FOX פוקס (75)",
-      "nameHe": "",
-      "code": "061f",
-      "price": 4.3,
-      "discount": 40,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444079s3j2wg",
-      "nameEn": "סייד רנר 1.22 מ\"א - FOX פוקס (50)",
-      "nameHe": "",
-      "code": "122f",
-      "price": 8.6,
-      "discount": 40,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154445oo3v4o2q",
-      "nameEn": "מיין רנר 3.66 מ\"א - FOX פוקס (24)",
-      "nameHe": "",
-      "code": "366F",
-      "price": 25.8,
-      "discount": 40,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444b9qpkumx0",
-      "nameEn": "פח מרק 28 ק\"ג - רוק בונד",
-      "nameHe": "",
-      "code": "28.0",
-      "price": 102,
-      "discount": 42,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444nzccjcs7j",
-      "nameEn": "פח מרק 25 ק\"ג-מג'יק בונד סופר",
-      "nameHe": "",
-      "code": "25.2",
-      "price": 99,
-      "discount": 42,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444a0u4ldo5e",
-      "nameEn": "קלסימו איקס - 5 ק\"ג טמבור",
-      "nameHe": "",
-      "code": "3946",
-      "price": 38.8,
-      "discount": 40,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444ogxwr11wq",
-      "nameEn": "סופרקריל לבן 18 ל' - טמבור",
-      "nameHe": "",
-      "code": "0710",
-      "price": 305.5,
-      "discount": 21.4,
-      "discountType": "percent"
-    },
-    {
-      "id": "17642615154444maou6nsy",
-      "nameEn": "סופרקריל  18 ל' ב.P",
-      "nameHe": "",
-      "code": "04918p",
-      "price": 316.7,
-      "discount": 19.4,
-      "discountType": "percent"
-    },
-    {
-      "id": "1764261515444kq9jjoera",
-      "nameEn": "אקווניר 16 ל' EXTRA ב. ‏A‏",
-      "nameHe": "",
-      "code": "AE18A",
-      "price": 274.5,
-      "discount": 15,
-      "discountType": "percent"
-    },
-    {
       "id": "1764457427483",
       "userId": "1764364289652nv9m0nbm1",
       "nameEn": "gym shoes",
@@ -436,37 +22,6 @@
     }
   ],
   "clients": [
-    {
-      "id": "1764174398500",
-      "name": "שי שלום",
-      "phone": "0523198889",
-      "email": "shayshay@gmail.com",
-      "status": "מעוניין",
-      "notes": "רוצה לקנות 5 חבילות",
-      "productIds": [
-        "1764021803862",
-        "1764182836481b2el3tjcq",
-        "1764182836481mgi35k0ei",
-        "176418283648143z3uxeo9",
-        "1764182836481ekqllrs2k",
-        "1764182836481tyvngm3wc",
-        "1764261515444625tj3rna",
-        "1764261515444murxetzdo",
-        "17642615154444wjcs7ygh",
-        "17642615154448lq369m3i"
-      ],
-      "lastContacted": "2025-11-25",
-      "pc": "מעוניין",
-      "comments": [
-        {
-          "id": "1764263067795",
-          "text": "best ever",
-          "createdAt": "2025-11-27T17:04:27.795Z",
-          "user": "User"
-        }
-      ],
-      "reminders": []
-    },
     {
       "id": "1764175239383",
       "name": "צוריאל קראודר",
@@ -491,124 +46,6 @@
         }
       ],
       "reminders": []
-    },
-    {
-      "id": "1764180687734",
-      "name": "david brown",
-      "phone": "0508764532",
-      "email": "dudewhat@gmail.com",
-      "status": "",
-      "notes": "",
-      "productIds": [
-        "1764177306427o9vsgjf1m"
-      ],
-      "lastContacted": "2025-11-15",
-      "pc": "",
-      "comments": [],
-      "reminders": []
-    },
-    {
-      "id": "17641840876251rleftkbh",
-      "name": "Olivia Brown",
-      "phone": "+1-125-950-7670",
-      "email": "olivia.brown@outlook.com",
-      "status": "Active",
-      "notes": "",
-      "productIds": [],
-      "lastContacted": "2025-11-26",
-      "pc": "Active",
-      "comments": [],
-      "reminders": []
-    },
-    {
-      "id": "17641840876255112kocq2",
-      "name": "Maria Johnson",
-      "phone": "+1-392-931-5721",
-      "email": "maria.johnson@gmail.com",
-      "status": "Active",
-      "notes": "",
-      "productIds": [],
-      "lastContacted": "2025-11-26"
-    },
-    {
-      "id": "1764184087625b80p1ibqm",
-      "name": "Tom Martin",
-      "phone": "+1-136-879-8983",
-      "email": "tom.martin@gmail.com",
-      "status": "Active",
-      "notes": "",
-      "productIds": [],
-      "lastContacted": "2025-11-26"
-    },
-    {
-      "id": "1764184087625kp86pwesc",
-      "name": "Tom Wilson",
-      "phone": "+1-155-341-5850",
-      "email": "tom.wilson@outlook.com",
-      "status": "Active",
-      "notes": "",
-      "productIds": [],
-      "lastContacted": "2025-11-26"
-    },
-    {
-      "id": "1764184087625n50ty457g",
-      "name": "Nina Wilson",
-      "phone": "+1-236-740-6435",
-      "email": "nina.wilson@yahoo.com",
-      "status": "Prospect",
-      "notes": "",
-      "productIds": [],
-      "lastContacted": "2025-11-26"
-    },
-    {
-      "id": "17641840876251wryktg4y",
-      "name": "Olivia Taylor",
-      "phone": "+1-430-222-5592",
-      "email": "olivia.taylor@gmail.com",
-      "status": "Active",
-      "notes": "",
-      "productIds": [],
-      "lastContacted": "2025-11-26"
-    },
-    {
-      "id": "17641840876250u6lgde4z",
-      "name": "Nina Brown",
-      "phone": "+1-791-919-8632",
-      "email": "nina.brown@gmail.com",
-      "status": "Inactive",
-      "notes": "",
-      "productIds": [],
-      "lastContacted": "2025-11-26"
-    },
-    {
-      "id": "17641840876253dwx0o1pa",
-      "name": "Tom Walker",
-      "phone": "+1-447-106-4473",
-      "email": "tom.walker@yahoo.com",
-      "status": "Inactive",
-      "notes": "",
-      "productIds": [],
-      "lastContacted": "2025-11-26"
-    },
-    {
-      "id": "1764184087625dvfg4ndf0",
-      "name": "Nina Martin",
-      "phone": "+1-772-908-6988",
-      "email": "nina.martin@outlook.com",
-      "status": "Prospect",
-      "notes": "",
-      "productIds": [],
-      "lastContacted": "2025-11-26"
-    },
-    {
-      "id": "17641840876257vnm2vq2b",
-      "name": "Lucas Johnson",
-      "phone": "+1-221-309-7492",
-      "email": "lucas.johnson@outlook.com",
-      "status": "Active",
-      "notes": "",
-      "productIds": [],
-      "lastContacted": "2025-11-26"
     }
   ],
   "documents": [
@@ -647,11 +84,11 @@
       "password": "$2b$10$oatuwlQ.8.vnj8QcAZWcHOsWFKFLTi7xon/UhL56XlqTi/IEXN3Je",
       "fullName": "Sureal Crowder",
       "createdAt": "2025-11-28T21:11:29.652Z",
-      "lastLogin": "2025-11-29T23:01:30.104Z",
+      "lastLogin": "2025-11-29T23:35:52.667Z",
       "phone": null,
       "profilePicture": "/api/users/profile-pictures/profile-1764364289652nv9m0nbm1-1764365700369.jpg",
       "darkMode": false,
-      "lastActive": "2025-11-29T23:22:43.269Z",
+      "lastActive": "2025-11-30T00:00:18.686Z",
       "isOnline": false
     },
     {
@@ -661,12 +98,12 @@
       "fullName": "Administrator",
       "role": "admin",
       "createdAt": "2025-11-29T17:57:27.048Z",
-      "lastLogin": "2025-11-29T21:13:18.112Z",
+      "lastLogin": "2025-11-30T00:04:35.253Z",
       "phone": null,
       "profilePicture": null,
       "darkMode": false,
       "mustChangePassword": false,
-      "lastActive": "2025-11-29T21:14:31.005Z",
+      "lastActive": "2025-11-30T00:05:16.438Z",
       "isOnline": true
     },
     {
@@ -687,6 +124,19 @@
       "fullName": "Boss Mann",
       "createdAt": "2025-11-29T20:44:14.749Z",
       "lastLogin": null,
+      "phone": null,
+      "profilePicture": null,
+      "darkMode": false
+    },
+    {
+      "id": "1764460928065eziacoe41",
+      "email": "sapir@gmail.com",
+      "password": "$2b$10$LbcvTJxSet8N4onvVGfYZeem.9AV3O/xjmQJY3OgwuwmAjbaaY912",
+      "fullName": "Sapir",
+      "createdAt": "2025-11-30T00:02:08.065Z",
+      "lastLogin": null,
+      "lastActive": "2025-11-30T00:04:14.744Z",
+      "isOnline": false,
       "phone": null,
       "profilePicture": null,
       "darkMode": false

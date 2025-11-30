@@ -80,6 +80,14 @@ export const deleteProduct = (id) => {
   }).then(handleResponse);
 };
 
+export const bulkDeleteProducts = (ids) => {
+  return fetch(`${API_BASE_URL}/products/bulk-delete`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ ids }),
+  }).then(handleResponse);
+};
+
 export const fetchClients = () => {
   return fetch(`${API_BASE_URL}/clients`, {
     headers: getHeaders(false)
@@ -106,6 +114,14 @@ export const deleteClient = (id) => {
   return fetch(`${API_BASE_URL}/clients/${id}`, {
     method: 'DELETE',
     headers: getHeaders(false)
+  }).then(handleResponse);
+};
+
+export const bulkDeleteClients = (ids) => {
+  return fetch(`${API_BASE_URL}/clients/bulk-delete`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ ids }),
   }).then(handleResponse);
 };
 

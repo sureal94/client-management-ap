@@ -205,13 +205,13 @@ const DocumentsPage = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <FileText className="w-7 h-7 text-primary" /> {t('documents') || 'Documents'}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-primary" /> {t('documents') || 'Documents'}
           </h1>
           <span 
-            className="bg-primary text-white px-3 py-1 rounded-full text-sm font-semibold"
+            className="bg-primary text-white px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap"
             title={isAdmin ? `Total: ${totalDocumentsCount} documents` : `You have ${totalDocumentsCount} documents`}
           >
             {totalDocumentsCount}
@@ -220,13 +220,13 @@ const DocumentsPage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 overflow-x-auto">
         <button
           onClick={() => {
             setActiveTab('clients');
             setDocumentSearchTerm(''); // Clear personal documents search when switching
           }}
-          className={`px-4 py-2 rounded-lg flex items-center gap-2 ${activeTab === 'clients' ? 'bg-primary text-white' : 'bg-gray-100'}`}
+          className={`px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap text-sm sm:text-base ${activeTab === 'clients' ? 'bg-primary text-white' : 'bg-gray-100'}`}
         >
           <span>{isAdmin ? 'Clients' : 'Clients'}</span>
           {activeTab === 'clients' && (
@@ -240,7 +240,7 @@ const DocumentsPage = () => {
             setActiveTab('personal');
             setClientSearchTerm(''); // Clear clients search when switching
           }}
-          className={`px-4 py-2 rounded-lg flex items-center gap-2 ${activeTab === 'personal' ? 'bg-primary text-white' : 'bg-gray-100'}`}
+          className={`px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap text-sm sm:text-base ${activeTab === 'personal' ? 'bg-primary text-white' : 'bg-gray-100'}`}
         >
           <span>{isAdmin ? 'All Documents' : 'My Documents'}</span>
           {activeTab === 'personal' && (

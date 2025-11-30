@@ -513,21 +513,16 @@ const Layout = ({ children }) => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex flex-col items-center px-3 py-1.5 rounded-lg transition-colors min-w-[60px] relative ${item.isActive
+                  className={`flex flex-col items-center px-3 py-1.5 rounded-lg transition-colors min-w-[60px] ${item.isActive
                     ? 'text-primary bg-gray-800'
                     : 'text-gray-400 hover:text-white active:bg-gray-800'
                     }`}
-                  title={item.count !== undefined ? `${item.label}: ${item.count}` : item.label}
+                  title={item.label}
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="text-[10px] mt-0.5 font-medium truncate max-w-full">
                     {item.label}
                   </span>
-                  {item.count !== undefined && (
-                    <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {item.count > 99 ? '99+' : item.count}
-                    </span>
-                  )}
                 </Link>
               ))}
             </div>

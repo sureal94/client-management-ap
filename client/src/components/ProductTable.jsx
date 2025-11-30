@@ -1,17 +1,18 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nContext';
-import { Edit, Plus, Download, Search, ChevronRight } from 'lucide-react';
+import { Edit, Plus, Download, Search, ChevronRight, Trash2 } from 'lucide-react';
 import { calculateFinalPrice } from '../utils/calculations';
 import ProductModal from './ProductModal';
 import Fuse from 'fuse.js';
 import * as XLSX from 'xlsx';
 
-const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
+const ProductTable = ({ products, onAdd, onEdit, onDelete, onBulkDelete }) => {
   const { t, language } = useI18n();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   const fuse = useMemo(() => {
     return new Fuse(products, {
@@ -116,21 +117,68 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
       : (product.nameEn || product.name);
   };
 
+  // Selection handlers
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(new Set(filteredProducts.map(p => p.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (selectedIds.size === 0) {
+      alert('Please select at least one product to delete.');
+      return;
+    }
+    if (onBulkDelete) {
+      onBulkDelete(Array.from(selectedIds));
+      setSelectedIds(new Set()); // Clear selection after delete
+    }
+  };
+
+  // Clear selection when products change
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [products.length]);
+
+  const allSelected = filteredProducts.length > 0 && selectedIds.size === filteredProducts.length;
+  const someSelected = selectedIds.size > 0 && selectedIds.size < filteredProducts.length;
+
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       {/* Header */}
       <div className="p-4 sm:p-6 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <h2 className="text-xl sm:text-2xl font-bold text-black">{t('products')}</h2>
             <span 
-              className="bg-primary text-white px-3 py-1 rounded-full text-sm font-semibold"
+              className="bg-primary text-white px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap"
               title={t('totalProducts') || `You have ${products.length} products`}
             >
               {products.length}
             </span>
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+            {selectedIds.size > 0 && onBulkDelete && (
+              <button
+                onClick={handleBulkDeleteClick}
+                className="flex-1 sm:flex-none bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 text-sm sm:text-base"
+              >
+                <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>Delete Selected ({selectedIds.size})</span>
+              </button>
+            )}
             <button
               onClick={handleAdd}
               className="flex-1 sm:flex-none bg-primary text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center justify-center gap-2 text-sm sm:text-base"
@@ -188,29 +236,42 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
             {filteredProducts.map((product) => {
               const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType);
               const displayName = getDisplayName(product);
+              const isSelected = selectedIds.has(product.id);
               return (
                 <div
                   key={product.id}
-                  className="p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer"
+                  className={`p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer ${isSelected ? 'bg-blue-50' : ''}`}
                   onClick={() => handleEdit(product)}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {displayName}
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {t('productCode')}: {product.code}
-                      </p>
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className="text-sm text-gray-500">
-                          {t('price')}: ₪{product.price.toFixed(2)}
-                        </span>
-                        {product.discount > 0 && (
-                          <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                            -{product.discount}%
+                    <div className="flex items-center gap-3 flex-1">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleSelectOne(product.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectOne(product.id);
+                        }}
+                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 truncate">
+                          {displayName}
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {t('productCode')}: {product.code}
+                        </p>
+                        <div className="flex items-center gap-4 mt-2">
+                          <span className="text-sm text-gray-500">
+                            {t('price')}: ₪{product.price.toFixed(2)}
                           </span>
-                        )}
+                          {product.discount > 0 && (
+                            <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                              -{product.discount}%
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-2">
@@ -232,6 +293,17 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-4 py-3 text-center text-sm font-bold text-black w-12">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(input) => {
+                    if (input) input.indeterminate = someSelected;
+                  }}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+              </th>
               <th
                 onClick={() => handleSort('name')}
                 className="px-6 py-3 text-center text-sm font-bold text-black cursor-pointer hover:bg-gray-100"
@@ -279,7 +351,7 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
                   {t('noProducts')}
                 </td>
               </tr>
@@ -287,8 +359,18 @@ const ProductTable = ({ products, onAdd, onEdit, onDelete }) => {
               filteredProducts.map((product) => {
                 const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType);
                 const displayName = getDisplayName(product);
+                const isSelected = selectedIds.has(product.id);
                 return (
-                  <tr key={product.id} className="hover:bg-gray-50">
+                  <tr key={product.id} className={`hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}`}>
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleSelectOne(product.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {displayName}
                     </td>

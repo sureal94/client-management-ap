@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import ProductTable from '../components/ProductTable';
-import { fetchProducts, createProduct, updateProduct, deleteProduct } from '../services/api';
+import { fetchProducts, createProduct, updateProduct, deleteProduct, bulkDeleteProducts } from '../services/api';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -58,14 +58,46 @@ const ProductsPage = () => {
     if (window.confirm(confirmMessage)) {
       try {
         await deleteProduct(id);
-        // Remove from state immediately
-        setProducts(products.filter(p => p.id !== id));
+        // Reload from server to ensure persistence
+        await loadProducts();
         // Show success message
         alert(isAdmin ? `Product "${productName}" deleted successfully.` : 'Product deleted successfully.');
       } catch (error) {
         console.error('Error deleting product:', error);
         const errorMessage = error.message || 'Failed to delete product';
         alert(`Failed to delete product: ${errorMessage}`);
+        // Reload anyway to sync state
+        await loadProducts();
+      }
+    }
+  };
+
+  const handleBulkDelete = async (ids) => {
+    if (!ids || ids.length === 0) {
+      alert('Please select at least one product to delete.');
+      return;
+    }
+    
+    const isAdmin = window.location.pathname.startsWith('/admin');
+    const confirmMessage = isAdmin
+      ? `Are you sure you want to delete ${ids.length} selected product(s)? This action cannot be undone.`
+      : `Are you sure you want to delete ${ids.length} selected product(s)?`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        const result = await bulkDeleteProducts(ids);
+        // Reload from server to ensure persistence
+        await loadProducts();
+        // Show success message
+        alert(isAdmin 
+          ? `${result.deletedCount || ids.length} product(s) deleted successfully.` 
+          : `${result.deletedCount || ids.length} product(s) deleted successfully.`);
+      } catch (error) {
+        console.error('Error bulk deleting products:', error);
+        const errorMessage = error.message || 'Failed to delete products';
+        alert(`Failed to delete products: ${errorMessage}`);
+        // Reload anyway to sync state
+        await loadProducts();
       }
     }
   };
@@ -80,6 +112,7 @@ const ProductsPage = () => {
       onAdd={handleAdd}
       onEdit={handleEdit}
       onDelete={handleDelete}
+      onBulkDelete={handleBulkDelete}
     />
   );
 };

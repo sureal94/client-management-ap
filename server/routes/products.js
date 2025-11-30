@@ -171,10 +171,61 @@ productsRouter.delete('/:id', authenticateToken, async (req, res) => {
     // Admin can delete any product, regular users can only delete their own
     const filtered = products.filter(p => p.id !== req.params.id);
     await saveProducts(filtered);
+    
+    // Verify deletion by reading back
+    const verifyProducts = await getProducts();
+    const stillExists = verifyProducts.find(p => p.id === req.params.id);
+    if (stillExists) {
+      console.error('ERROR: Product still exists after deletion! Retrying...');
+      await saveProducts(filtered); // Retry save
+    }
+    
     res.json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Error deleting product:', error);
     res.status(500).json({ error: error.message || 'Failed to delete product' });
+  }
+});
+
+// Bulk delete products
+productsRouter.post('/bulk-delete', authenticateToken, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Product IDs array is required' });
+    }
+    
+    const products = await getProducts();
+    const admin = await isAdmin(req.userId);
+    
+    // Filter: admin can delete any, users can only delete their own
+    const productsToDelete = products.filter(p => {
+      if (!ids.includes(p.id)) return false;
+      if (admin) return true;
+      return p.userId === req.userId;
+    });
+    
+    const deletedIds = productsToDelete.map(p => p.id);
+    const filtered = products.filter(p => !deletedIds.includes(p.id));
+    
+    await saveProducts(filtered);
+    
+    // Verify deletion
+    const verifyProducts = await getProducts();
+    const stillExist = verifyProducts.filter(p => deletedIds.includes(p.id));
+    if (stillExist.length > 0) {
+      console.error('ERROR: Some products still exist after bulk deletion! Retrying...');
+      await saveProducts(filtered); // Retry save
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `${deletedIds.length} product(s) deleted successfully`,
+      deletedCount: deletedIds.length
+    });
+  } catch (error) {
+    console.error('Error bulk deleting products:', error);
+    res.status(500).json({ error: error.message || 'Failed to bulk delete products' });
   }
 });
 

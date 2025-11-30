@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nContext';
-import { Plus, Phone, Mail, Search, Download, ChevronRight, UserPlus } from 'lucide-react';
-import { fetchClients, createClient, updateClient, deleteClient, fetchProducts, assignClientToUser } from '../services/api';
+import { Plus, Phone, Mail, Search, Download, ChevronRight, UserPlus, Trash2 } from 'lucide-react';
+import { fetchClients, createClient, updateClient, deleteClient, fetchProducts, assignClientToUser, bulkDeleteClients } from '../services/api';
 import ClientModal from '../components/ClientModal';
 import AssignToUserModal from '../components/AssignToUserModal';
 import Fuse from 'fuse.js';
@@ -24,6 +24,7 @@ const ClientsPage = () => {
   const [editingClient, setEditingClient] = useState(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedClientForAssign, setSelectedClientForAssign] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(new Set());
   
   // Check if we're in admin mode
   const isAdmin = window.location.pathname.startsWith('/admin');
@@ -114,17 +115,77 @@ const ClientsPage = () => {
     if (window.confirm(confirmMessage)) {
       try {
         await deleteClient(id);
-        // Remove from state immediately
-        setClients(clients.filter(c => c.id !== id));
+        // Reload from server to ensure persistence
+        await loadData();
         // Show success message
         alert(isAdmin ? `Client "${clientName}" deleted successfully.` : 'Client deleted successfully.');
       } catch (error) {
         console.error('Error deleting client:', error);
         const errorMessage = error.message || 'Failed to delete client';
         alert(`Failed to delete client: ${errorMessage}`);
+        // Reload anyway to sync state
+        await loadData();
       }
     }
   };
+
+  const handleBulkDelete = async (ids) => {
+    if (!ids || ids.length === 0) {
+      alert('Please select at least one client to delete.');
+      return;
+    }
+    
+    const confirmMessage = isAdmin 
+      ? `Are you sure you want to delete ${ids.length} selected client(s)? This action cannot be undone.`
+      : `Are you sure you want to delete ${ids.length} selected client(s)?`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        const result = await bulkDeleteClients(ids);
+        // Reload from server to ensure persistence
+        await loadData();
+        // Clear selection
+        setSelectedIds(new Set());
+        // Show success message
+        alert(isAdmin 
+          ? `${result.deletedCount || ids.length} client(s) deleted successfully.` 
+          : `${result.deletedCount || ids.length} client(s) deleted successfully.`);
+      } catch (error) {
+        console.error('Error bulk deleting clients:', error);
+        const errorMessage = error.message || 'Failed to delete clients';
+        alert(`Failed to delete clients: ${errorMessage}`);
+        // Reload anyway to sync state
+        await loadData();
+      }
+    }
+  };
+
+  // Selection handlers
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(new Set(filteredClients.map(c => c.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  // Clear selection when clients change
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [clients.length]);
+
+  const allSelected = filteredClients.length > 0 && selectedIds.size === filteredClients.length;
+  const someSelected = selectedIds.size > 0 && selectedIds.size < filteredClients.length;
 
   const handleCall = (phone) => {
     window.location.href = `tel:${phone}`;
@@ -198,16 +259,25 @@ const ClientsPage = () => {
       {/* Header */}
       <div className="p-4 sm:p-6 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <h2 className="text-xl sm:text-2xl font-bold text-black">{t('clients')}</h2>
             <span 
-              className="bg-primary text-white px-3 py-1 rounded-full text-sm font-semibold"
+              className="bg-primary text-white px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap"
               title={isAdmin ? `Total: ${clients.length} clients` : `You have ${clients.length} clients`}
             >
               {clients.length}
             </span>
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+            {selectedIds.size > 0 && (
+              <button
+                onClick={() => handleBulkDelete(Array.from(selectedIds))}
+                className="flex-1 sm:flex-none bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 text-sm sm:text-base"
+              >
+                <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>Delete Selected ({selectedIds.size})</span>
+              </button>
+            )}
             <button
               onClick={handleAdd}
               className="flex-1 sm:flex-none bg-primary text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center justify-center gap-2 text-sm sm:text-base"
@@ -262,14 +332,27 @@ const ClientsPage = () => {
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
-            {filteredClients.map((client) => (
+            {filteredClients.map((client) => {
+              const isSelected = selectedIds.has(client.id);
+              return (
               <div
                 key={client.id}
-                className="p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer"
+                className={`p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer ${isSelected ? 'bg-blue-50' : ''}`}
                 onClick={() => handleEdit(client)}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleSelectOne(client.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectOne(client.id);
+                      }}
+                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900 truncate">
                       {client.name}
                     </h3>
@@ -279,6 +362,7 @@ const ClientsPage = () => {
                     {client.email && (
                       <p className="text-sm text-gray-400 truncate">{client.email}</p>
                     )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-1 ml-2">
                     {/* Action Buttons */}
@@ -337,7 +421,8 @@ const ClientsPage = () => {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>
@@ -347,6 +432,17 @@ const ClientsPage = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(input) => {
+                    if (input) input.indeterminate = someSelected;
+                  }}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+              </th>
               <th className="px-6 py-3 text-right rtl:text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {t('clientName')}
               </th>
@@ -370,76 +466,88 @@ const ClientsPage = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredClients.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
                   {t('noClients')}
                 </td>
               </tr>
             ) : (
-              filteredClients.map((client) => (
-                <tr 
-                  key={client.id} 
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleEdit(client)}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {client.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {client.phone}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {client.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {client.pc || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {client.lastContacted
-                      ? new Date(client.lastContacted).toLocaleDateString()
-                      : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex gap-2 rtl:flex-row-reverse">
-                      {client.phone && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCall(client.phone);
-                          }}
-                          className="text-primary hover:text-orange-600 p-1"
-                          title={t('call')}
-                        >
-                          <Phone className="w-5 h-5" />
-                        </button>
-                      )}
-                      {client.phone && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleWhatsApp(client.phone);
-                          }}
-                          className="text-green-600 hover:text-green-700 p-1"
-                          title={t('whatsapp') || 'WhatsApp'}
-                        >
-                          <WhatsAppIcon className="w-5 h-5" />
-                        </button>
-                      )}
-                      {client.email && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEmail(client.email);
-                          }}
-                          className="text-primary hover:text-orange-600 p-1"
-                          title={t('email')}
-                        >
-                          <Mail className="w-5 h-5" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+              filteredClients.map((client) => {
+                const isSelected = selectedIds.has(client.id);
+                return (
+                  <tr 
+                    key={client.id} 
+                    className={`hover:bg-gray-50 cursor-pointer ${isSelected ? 'bg-blue-50' : ''}`}
+                    onClick={() => handleEdit(client)}
+                  >
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleSelectOne(client.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {client.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {client.phone}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {client.email}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {client.pc || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {client.lastContacted
+                        ? new Date(client.lastContacted).toLocaleDateString()
+                        : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex gap-2 rtl:flex-row-reverse">
+                        {client.phone && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCall(client.phone);
+                            }}
+                            className="text-primary hover:text-orange-600 p-1"
+                            title={t('call')}
+                          >
+                            <Phone className="w-5 h-5" />
+                          </button>
+                        )}
+                        {client.phone && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleWhatsApp(client.phone);
+                            }}
+                            className="text-green-600 hover:text-green-700 p-1"
+                            title={t('whatsapp') || 'WhatsApp'}
+                          >
+                            <WhatsAppIcon className="w-5 h-5" />
+                          </button>
+                        )}
+                        {client.email && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEmail(client.email);
+                            }}
+                            className="text-primary hover:text-orange-600 p-1"
+                            title={t('email')}
+                          >
+                            <Mail className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

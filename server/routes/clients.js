@@ -143,10 +143,61 @@ clientsRouter.delete('/:id', authenticateToken, async (req, res) => {
     // Admin can delete any client, regular users can only delete their own
     const filtered = clients.filter(c => c.id !== req.params.id);
     await saveClients(filtered);
+    
+    // Verify deletion by reading back
+    const verifyClients = await getClients();
+    const stillExists = verifyClients.find(c => c.id === req.params.id);
+    if (stillExists) {
+      console.error('ERROR: Client still exists after deletion! Retrying...');
+      await saveClients(filtered); // Retry save
+    }
+    
     res.json({ success: true, message: 'Client deleted successfully' });
   } catch (error) {
     console.error('Error deleting client:', error);
     res.status(500).json({ error: error.message || 'Failed to delete client' });
+  }
+});
+
+// Bulk delete clients
+clientsRouter.post('/bulk-delete', authenticateToken, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Client IDs array is required' });
+    }
+    
+    const clients = await getClients();
+    const admin = await isAdmin(req.userId);
+    
+    // Filter: admin can delete any, users can only delete their own
+    const clientsToDelete = clients.filter(c => {
+      if (!ids.includes(c.id)) return false;
+      if (admin) return true;
+      return c.userId === req.userId;
+    });
+    
+    const deletedIds = clientsToDelete.map(c => c.id);
+    const filtered = clients.filter(c => !deletedIds.includes(c.id));
+    
+    await saveClients(filtered);
+    
+    // Verify deletion
+    const verifyClients = await getClients();
+    const stillExist = verifyClients.filter(c => deletedIds.includes(c.id));
+    if (stillExist.length > 0) {
+      console.error('ERROR: Some clients still exist after bulk deletion! Retrying...');
+      await saveClients(filtered); // Retry save
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `${deletedIds.length} client(s) deleted successfully`,
+      deletedCount: deletedIds.length
+    });
+  } catch (error) {
+    console.error('Error bulk deleting clients:', error);
+    res.status(500).json({ error: error.message || 'Failed to bulk delete clients' });
   }
 });
 
